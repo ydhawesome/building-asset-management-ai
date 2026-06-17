@@ -27,17 +27,34 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;display:flex;height:100vh;overflow:hidden;transition:background .2s,color .2s}
 /* ── SIDEBAR ─────────────────────────────────────────────── */
-.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;box-shadow:2px 0 8px var(--shadow)}
-.logo{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
-.logo-title{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.5px}
-.logo-sub{font-size:11px;color:var(--muted);margin-top:3px}
-nav{flex:1;padding:12px 8px;overflow-y:auto}
-.nav-section{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:10px 8px 4px;text-transform:uppercase}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;margin-bottom:2px}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;box-shadow:2px 0 8px var(--shadow);transition:width .28s cubic-bezier(.4,0,.2,1);overflow:visible;position:relative;z-index:10}
+.logo{padding:16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:56px}
+.logo-content{flex:1;min-width:0;overflow:hidden;transition:opacity .2s,width .28s}
+.logo-title{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.5px;white-space:nowrap}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap}
+.sidebar-toggle{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;line-height:1;font-weight:700}
+.sidebar-toggle:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,124,255,.08)}
+nav{flex:1;padding:12px 8px;overflow-y:auto;overflow-x:visible}
+.nav-section{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:10px 8px 4px;text-transform:uppercase;transition:opacity .2s,height .2s;white-space:nowrap;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;margin-bottom:2px;position:relative;overflow:visible}
 .nav-item:hover{background:var(--surface2);color:var(--text)}
 .nav-item.active{background:rgba(79,124,255,.12);color:var(--accent);font-weight:600}
-.nav-icon{font-size:15px;width:20px;text-align:center}
-.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.6}
+.nav-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;transition:font-size .2s}
+.nav-label{white-space:nowrap;overflow:hidden;transition:opacity .2s,width .28s;display:inline-block}
+/* Floating tooltip (only visible when collapsed) */
+.nav-tooltip{position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%) translateX(-6px);background:var(--text);color:var(--surface);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s,transform .18s;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.nav-tooltip::before{content:'';position:absolute;right:100%;top:50%;transform:translateY(-50%);border:6px solid transparent;border-right-color:var(--text)}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.6;transition:opacity .2s,height .2s,padding .2s;overflow:hidden;white-space:nowrap}
+/* ── COLLAPSED STATE ─────────────────────────────────────── */
+.sidebar.collapsed{width:64px}
+.sidebar.collapsed .logo-content{opacity:0;width:0;flex:0}
+.sidebar.collapsed .logo{justify-content:center;padding:14px 0}
+.sidebar.collapsed .sidebar-toggle{transform:rotate(180deg)}
+.sidebar.collapsed .nav-section{opacity:0;height:0;padding:0}
+.sidebar.collapsed .nav-label{opacity:0;width:0}
+.sidebar.collapsed .nav-item{justify-content:center;padding:10px 0}
+.sidebar.collapsed .sidebar-footer{opacity:0;height:0;padding:0;border:none}
+.sidebar.collapsed .nav-item:hover .nav-tooltip{opacity:1;transform:translateY(-50%) translateX(0)}
 /* ── TOPBAR ──────────────────────────────────────────────── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;box-shadow:0 1px 4px var(--shadow)}
@@ -137,24 +154,55 @@ canvas{max-width:100%}
 </head>
 <body>
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="logo">
-    <div class="logo-title">BuildingIQ</div>
-    <div class="logo-sub">Asset Management Platform</div>
+    <div class="logo-content">
+      <div class="logo-title">BuildingIQ</div>
+      <div class="logo-sub">Asset Management Platform</div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar">‹</button>
   </div>
   <nav>
-    <div class="nav-section">Overview</div>
-    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
-    <div class="nav-item" onclick="showPage('portfolio')"><span class="nav-icon">🏢</span> Portfolio</div>
-    <div class="nav-section">AI Analysis</div>
-    <div class="nav-item" onclick="showPage('predictions')"><span class="nav-icon">🔮</span> AI Predictions</div>
-    <div class="nav-item" onclick="showPage('recommendations')"><span class="nav-icon">💡</span> Recommendations</div>
-    <div class="nav-item" onclick="showPage('risk')"><span class="nav-icon">⚠️</span> Risk Assessment</div>
-    <div class="nav-section">Planning</div>
-    <div class="nav-item" onclick="showPage('budget')"><span class="nav-icon">💰</span> Budget Optimizer</div>
-    <div class="nav-item" onclick="showPage('data')"><span class="nav-icon">🗄️</span> Data Explorer</div>
+    <div class="nav-section"><span class="nav-label">Overview</span></div>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+      <span class="nav-tooltip">📊 Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPage('portfolio')">
+      <span class="nav-icon">🏢</span>
+      <span class="nav-label">Portfolio</span>
+      <span class="nav-tooltip">🏢 Portfolio</span>
+    </div>
+    <div class="nav-section"><span class="nav-label">AI Analysis</span></div>
+    <div class="nav-item" onclick="showPage('predictions')">
+      <span class="nav-icon">🔮</span>
+      <span class="nav-label">AI Predictions</span>
+      <span class="nav-tooltip">🔮 AI Predictions</span>
+    </div>
+    <div class="nav-item" onclick="showPage('recommendations')">
+      <span class="nav-icon">💡</span>
+      <span class="nav-label">Recommendations</span>
+      <span class="nav-tooltip">💡 Recommendations</span>
+    </div>
+    <div class="nav-item" onclick="showPage('risk')">
+      <span class="nav-icon">⚠️</span>
+      <span class="nav-label">Risk Assessment</span>
+      <span class="nav-tooltip">⚠️ Risk Assessment</span>
+    </div>
+    <div class="nav-section"><span class="nav-label">Planning</span></div>
+    <div class="nav-item" onclick="showPage('budget')">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Budget Optimizer</span>
+      <span class="nav-tooltip">💰 Budget Optimizer</span>
+    </div>
+    <div class="nav-item" onclick="showPage('data')">
+      <span class="nav-icon">🗄️</span>
+      <span class="nav-label">Data Explorer</span>
+      <span class="nav-tooltip">🗄️ Data Explorer</span>
+    </div>
   </nav>
-  <div class="sidebar-footer">Municipality: Oslo / Bergen<br>Last sync: 2026-06-16 08:30</div>
+  <div class="sidebar-footer"><span class="nav-label">Municipality: Oslo / Bergen<br>Last sync: 2026-06-16 08:30</span></div>
 </aside>
 
 <div class="main">
@@ -501,6 +549,11 @@ const energyColor=e=>({A:'#16a34a',B:'#15803d',C:'#ca8a04',D:'#ea580c',E:'#dc262
 const isDark=()=>document.documentElement.getAttribute('data-theme')==='dark';
 const tick=()=>isDark()?'#8892a4':'#64748b';
 const grid=()=>isDark()?'rgba(46,50,80,.5)':'rgba(0,0,0,.07)';
+
+// SIDEBAR
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
 
 // THEME
 function toggleTheme(){
