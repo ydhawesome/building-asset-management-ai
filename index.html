@@ -1,147 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI-Supported Building Asset Management</title>
+<title>BuildingIQ — AI Asset Management</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg:#0f1117;--surface:#1a1d27;--surface2:#222536;--border:#2e3250;
-    --accent:#4f7cff;--accent2:#7c4fff;--green:#22c55e;--yellow:#f59e0b;
-    --red:#ef4444;--orange:#f97316;--text:#e2e8f0;--muted:#8892a4;--sidebar-w:220px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;display:flex;height:100vh;overflow:hidden}
-  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-  .logo{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
-  .logo-title{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.5px}
-  .logo-sub{font-size:11px;color:var(--muted);margin-top:3px}
-  nav{flex:1;padding:12px 8px}
-  .nav-section{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:8px 8px 4px;text-transform:uppercase}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;margin-bottom:2px}
-  .nav-item:hover{background:var(--surface2);color:var(--text)}
-  .nav-item.active{background:rgba(79,124,255,.15);color:var(--accent);font-weight:600}
-  .nav-icon{font-size:16px;width:20px;text-align:center}
-  .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
-  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-  .topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
-  .topbar-title{font-size:16px;font-weight:600}
-  .topbar-right{display:flex;align-items:center;gap:12px}
-  .badge{background:rgba(79,124,255,.2);color:var(--accent);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
-  .badge.green{background:rgba(34,197,94,.15);color:var(--green)}
-  .lang-btn{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer}
-  .lang-opt{padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);transition:all .15s;border:none;background:transparent;cursor:pointer}
-  .lang-opt.active{background:var(--accent);color:#fff}
-  .content{flex:1;overflow-y:auto;padding:24px}
-  .page{display:none}
-  .page.active{display:block}
-  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
-  .card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-  .card-value{font-size:26px;font-weight:700;line-height:1}
-  .card-sub{font-size:12px;color:var(--muted);margin-top:6px}
-  .card-trend{font-size:12px;margin-top:4px}
-  .trend-up{color:var(--red)}.trend-dn{color:var(--green)}
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
-  .grid-6040{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:24px}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
-  .panel-title{font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-  .panel-title span{color:var(--muted);font-size:12px;font-weight:400}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;padding:10px 12px;color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
-  td{padding:11px 12px;border-bottom:1px solid rgba(46,50,80,.5)}
-  tr:hover td{background:rgba(255,255,255,.02)}
-  tr:last-child td{border-bottom:none}
-  .cond-bar-wrap{display:flex;align-items:center;gap:8px}
-  .cond-bar{height:6px;border-radius:3px;flex:1;background:var(--border)}
-  .cond-fill{height:100%;border-radius:3px}
-  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
-  .tag.critical{background:rgba(239,68,68,.15);color:var(--red)}
-  .tag.high{background:rgba(249,115,22,.15);color:var(--orange)}
-  .tag.medium{background:rgba(245,158,11,.15);color:var(--yellow)}
-  .tag.low{background:rgba(34,197,94,.15);color:var(--green)}
-  .filter-bar{display:flex;gap:10px;margin-bottom:16px}
-  input[type=text],select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;outline:none}
-  input[type=text]:focus,select:focus{border-color:var(--accent)}
-  input[type=text]{flex:1}
-  .btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
-  .btn-primary{background:var(--accent);color:#fff}
-  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-  .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
-  .progress-wrap{margin-bottom:12px}
-  .progress-label{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
-  .progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
-  .progress-fill{height:100%;border-radius:4px}
-  .rec-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start}
-  .rec-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-  .rec-icon.critical{background:rgba(239,68,68,.15)}
-  .rec-icon.high{background:rgba(249,115,22,.15)}
-  .rec-body{flex:1}
-  .rec-title{font-weight:600;font-size:13px;margin-bottom:3px}
-  .rec-desc{color:var(--muted);font-size:12px;line-height:1.5}
-  .rec-meta{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
-  .rec-tag{font-size:11px;color:var(--muted);background:var(--border);padding:2px 8px;border-radius:4px}
-  .risk-cell{height:52px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;flex:1}
-  .risk-cell .count{font-size:18px}
-  .risk-cell .label{font-size:10px;display:block;opacity:.8}
-  input[type=range]{-webkit-appearance:none;width:100%;height:6px;background:var(--border);border-radius:3px;outline:none}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000}
-  .modal-overlay.open{display:flex}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:780px;max-height:85vh;overflow-y:auto;padding:28px}
-  .modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-  .modal-close{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
-  .comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
-  .comp-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px}
-  .comp-name{font-size:11px;color:var(--muted);margin-bottom:6px}
-  .comp-score{font-size:22px;font-weight:700}
-  canvas{max-width:100%}
-  ::-webkit-scrollbar{width:6px;height:6px}
-  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-  .section-title{font-size:15px;font-weight:700;margin-bottom:16px}
-  .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
-  .text-accent{color:var(--accent)}.text-muted{color:var(--muted)}.text-green{color:var(--green)}.text-red{color:var(--red)}.text-yellow{color:var(--yellow)}
-  .mt-16{margin-top:16px}.flex{display:flex}.flex-between{display:flex;justify-content:space-between;align-items:center}.gap-8{gap:8px}.fw-600{font-weight:600}.fs-12{font-size:12px}.fs-11{font-size:11px}
-  .ai-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(124,79,255,.15);color:var(--accent2);padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+/* ── THEMES ─────────────────────────────────────────────── */
+:root {
+  --bg:#f0f4f8;--surface:#ffffff;--surface2:#f0f4f8;--border:#dde3ed;
+  --text:#1a202c;--muted:#64748b;--shadow:rgba(0,0,0,.07);
+  --accent:#4f7cff;--accent2:#7c4fff;
+  --green:#16a34a;--yellow:#d97706;--red:#dc2626;--orange:#ea580c;
+  --tag-critical-bg:rgba(220,38,38,.1);--tag-high-bg:rgba(234,88,12,.1);
+  --tag-medium-bg:rgba(217,119,6,.1);--tag-low-bg:rgba(22,163,74,.1);
+  --sidebar-w:220px;
+}
+[data-theme="dark"] {
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222536;--border:#2e3250;
+  --text:#e2e8f0;--muted:#8892a4;--shadow:rgba(0,0,0,.3);
+  --green:#22c55e;--yellow:#f59e0b;--red:#ef4444;--orange:#f97316;
+  --tag-critical-bg:rgba(239,68,68,.15);--tag-high-bg:rgba(249,115,22,.15);
+  --tag-medium-bg:rgba(245,158,11,.15);--tag-low-bg:rgba(34,197,94,.15);
+}
+/* ── RESET ───────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;display:flex;height:100vh;overflow:hidden;transition:background .2s,color .2s}
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;box-shadow:2px 0 8px var(--shadow)}
+.logo{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.logo-title{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.5px}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:3px}
+nav{flex:1;padding:12px 8px;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:10px 8px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(79,124,255,.12);color:var(--accent);font-weight:600}
+.nav-icon{font-size:15px;width:20px;text-align:center}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.6}
+/* ── TOPBAR ──────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;box-shadow:0 1px 4px var(--shadow)}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.theme-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(79,124,255,.12);color:var(--accent)}
+.badge.green{background:rgba(22,163,74,.12);color:var(--green)}
+[data-theme="dark"] .badge.green{background:rgba(34,197,94,.15);color:var(--green)}
+.ai-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(124,79,255,.1);color:var(--accent2);padding:3px 9px;border-radius:4px;font-size:11px;font-weight:600}
+/* ── CONTENT ─────────────────────────────────────────────── */
+.content{flex:1;overflow-y:auto;padding:24px}
+.page{display:none}.page.active{display:block}
+/* ── STAT CARDS ──────────────────────────────────────────── */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 1px 4px var(--shadow)}
+.card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.card-value{font-size:28px;font-weight:800;line-height:1}
+.card-sub{font-size:12px;color:var(--muted);margin-top:5px}
+.card-trend{font-size:12px;margin-top:4px}
+.trend-up{color:var(--red)}.trend-dn{color:var(--green)}
+/* ── GRIDS ───────────────────────────────────────────────── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+.grid-6040{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:24px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 1px 4px var(--shadow)}
+.panel-title{font-size:13px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;color:var(--text)}
+.panel-title span{color:var(--muted);font-size:12px;font-weight:400}
+.section-title{font-size:15px;font-weight:700;margin-bottom:16px}
+.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+/* ── TABLE ───────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+td{padding:11px 12px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.cond-wrap{display:flex;align-items:center;gap:8px}
+.cond-bar{height:6px;border-radius:3px;flex:1;background:var(--border)}
+.cond-fill{height:100%;border-radius:3px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.tag.critical{background:var(--tag-critical-bg);color:var(--red)}
+.tag.high{background:var(--tag-high-bg);color:var(--orange)}
+.tag.medium{background:var(--tag-medium-bg);color:var(--yellow)}
+.tag.low{background:var(--tag-low-bg);color:var(--green)}
+/* ── CONTROLS ────────────────────────────────────────────── */
+.filter-bar{display:flex;gap:10px;margin-bottom:16px}
+input[type=text],select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;outline:none;transition:border .15s}
+input[type=text]:focus,select:focus{border-color:var(--accent)}
+input[type=text]{flex:1}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{opacity:.9}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+/* ── PROGRESS ────────────────────────────────────────────── */
+.progress-wrap{margin-bottom:12px}
+.progress-label{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px}
+/* ── REC CARDS ───────────────────────────────────────────── */
+.rec-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start}
+.rec-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.rec-icon.critical{background:var(--tag-critical-bg)}.rec-icon.high{background:var(--tag-high-bg)}
+.rec-body{flex:1}
+.rec-title{font-weight:700;font-size:13px;margin-bottom:3px}
+.rec-desc{color:var(--muted);font-size:12px;line-height:1.6}
+.rec-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.rec-tag{font-size:11px;color:var(--muted);background:var(--border);padding:2px 8px;border-radius:4px}
+/* ── RISK MATRIX ─────────────────────────────────────────── */
+.risk-cell{height:52px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;flex:1;text-align:center}
+.risk-cell .count{font-size:18px;display:block}
+.risk-cell .lbl{font-size:9px;display:block;opacity:.75;margin-top:1px}
+/* ── BUDGET ──────────────────────────────────────────────── */
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;background:var(--border);border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer}
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:780px;max-height:86vh;overflow-y:auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.modal-close{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{color:var(--text)}
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.comp-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.comp-name{font-size:11px;color:var(--muted);margin-bottom:5px}
+.comp-score{font-size:22px;font-weight:800}
+/* ── UTILS ───────────────────────────────────────────────── */
+canvas{max-width:100%}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.flex{display:flex}.flex-between{display:flex;justify-content:space-between;align-items:center}
+.gap-8{gap:8px}.fw-700{font-weight:700}.fw-600{font-weight:600}
+.fs-12{font-size:12px}.fs-11{font-size:11px}.mt-16{margin-top:16px}
+.text-accent{color:var(--accent)}.text-muted{color:var(--muted)}
+.text-green{color:var(--green)}.text-red{color:var(--red)}.text-yellow{color:var(--yellow)}
 </style>
 </head>
 <body>
 
-<div class="sidebar">
+<aside class="sidebar">
   <div class="logo">
     <div class="logo-title">BuildingIQ</div>
-    <div class="logo-sub" data-i18n="logo_sub">Asset Management Platform</div>
+    <div class="logo-sub">Asset Management Platform</div>
   </div>
   <nav>
-    <div class="nav-section" data-i18n="nav_overview">Overview</div>
-    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span><span data-i18n="nav_dashboard">Dashboard</span></div>
-    <div class="nav-item" onclick="showPage('portfolio')"><span class="nav-icon">🏢</span><span data-i18n="nav_portfolio">Portfolio</span></div>
-    <div class="nav-section" data-i18n="nav_ai">AI Analysis</div>
-    <div class="nav-item" onclick="showPage('predictions')"><span class="nav-icon">🔮</span><span data-i18n="nav_predictions">AI Predictions</span></div>
-    <div class="nav-item" onclick="showPage('recommendations')"><span class="nav-icon">💡</span><span data-i18n="nav_recommendations">Recommendations</span></div>
-    <div class="nav-item" onclick="showPage('risk')"><span class="nav-icon">⚠️</span><span data-i18n="nav_risk">Risk Assessment</span></div>
-    <div class="nav-section" data-i18n="nav_planning">Planning</div>
-    <div class="nav-item" onclick="showPage('budget')"><span class="nav-icon">💰</span><span data-i18n="nav_budget">Budget Optimizer</span></div>
-    <div class="nav-item" onclick="showPage('data')"><span class="nav-icon">🗄️</span><span data-i18n="nav_data">Data Explorer</span></div>
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('portfolio')"><span class="nav-icon">🏢</span> Portfolio</div>
+    <div class="nav-section">AI Analysis</div>
+    <div class="nav-item" onclick="showPage('predictions')"><span class="nav-icon">🔮</span> AI Predictions</div>
+    <div class="nav-item" onclick="showPage('recommendations')"><span class="nav-icon">💡</span> Recommendations</div>
+    <div class="nav-item" onclick="showPage('risk')"><span class="nav-icon">⚠️</span> Risk Assessment</div>
+    <div class="nav-section">Planning</div>
+    <div class="nav-item" onclick="showPage('budget')"><span class="nav-icon">💰</span> Budget Optimizer</div>
+    <div class="nav-item" onclick="showPage('data')"><span class="nav-icon">🗄️</span> Data Explorer</div>
   </nav>
-  <div class="sidebar-footer" data-i18n="footer_text">Municipality: Oslo / Bergen<br>Last sync: 2026-06-16 08:30</div>
-</div>
+  <div class="sidebar-footer">Municipality: Oslo / Bergen<br>Last sync: 2026-06-16 08:30</div>
+</aside>
 
 <div class="main">
-  <div class="topbar">
-    <div class="topbar-title" id="page-title" data-i18n="page_dashboard">Portfolio Dashboard</div>
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">Portfolio Dashboard</div>
     <div class="topbar-right">
-      <div class="lang-btn">
-        <button class="lang-opt" onclick="setLang('en')" id="btn-en">EN</button>
-        <button class="lang-opt active" onclick="setLang('zh')" id="btn-zh">中文</button>
-      </div>
       <span class="ai-badge">🤖 AI Model v2.4</span>
-      <span class="badge green">● <span data-i18n="status_online">System Online</span></span>
-      <span class="badge">18 <span data-i18n="buildings_count">Buildings</span></span>
+      <span class="badge green">● System Online</span>
+      <span class="badge">18 Buildings</span>
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle dark / light mode">🌙</button>
     </div>
-  </div>
+  </header>
 
   <div class="content">
 
@@ -149,122 +174,107 @@
     <div class="page active" id="page-dashboard">
       <div class="cards">
         <div class="card">
-          <div class="card-label" data-i18n="card_avg_cond">Portfolio Condition</div>
+          <div class="card-label">Portfolio Condition</div>
           <div class="card-value text-yellow">61.4</div>
-          <div class="card-sub" data-i18n="card_avg_cond_sub">Average score / 100</div>
-          <div class="card-trend trend-up" data-i18n="card_avg_cond_trend">▼ 3.2 pts vs last year</div>
+          <div class="card-sub">Average score / 100</div>
+          <div class="card-trend trend-up">▼ 3.2 pts vs last year</div>
         </div>
         <div class="card">
-          <div class="card-label" data-i18n="card_critical">Critical Buildings</div>
+          <div class="card-label">Critical Buildings</div>
           <div class="card-value text-red">4</div>
-          <div class="card-sub" data-i18n="card_critical_sub">Score below 40</div>
-          <div class="card-trend trend-up" data-i18n="card_critical_trend">▲ 1 new since Q1</div>
+          <div class="card-sub">Score below 40</div>
+          <div class="card-trend trend-up">▲ 1 new since Q1</div>
         </div>
         <div class="card">
-          <div class="card-label" data-i18n="card_backlog">Deferred Maintenance</div>
+          <div class="card-label">Deferred Maintenance</div>
           <div class="card-value">142M</div>
-          <div class="card-sub" data-i18n="card_backlog_sub">NOK — backlog cost</div>
-          <div class="card-trend trend-up" data-i18n="card_backlog_trend">▲ 18M vs 2025</div>
+          <div class="card-sub">NOK — backlog cost</div>
+          <div class="card-trend trend-up">▲ 18M vs 2025</div>
         </div>
         <div class="card">
-          <div class="card-label" data-i18n="card_budget">Budget Utilization</div>
+          <div class="card-label">Budget Utilization</div>
           <div class="card-value text-green">78%</div>
-          <div class="card-sub" data-i18n="card_budget_sub">62.4M NOK used / 80M</div>
-          <div class="card-trend" data-i18n="card_budget_trend">FY 2026</div>
+          <div class="card-sub">62.4M of 80M NOK used</div>
+          <div class="card-trend">FY 2026</div>
         </div>
       </div>
-
       <div class="grid-2">
         <div class="panel">
-          <div class="panel-title"><span data-i18n="chart_cond_dist">Condition Score Distribution</span> <span data-i18n="chart_cond_dist_sub">All 18 buildings</span></div>
+          <div class="panel-title">Condition Score Distribution <span>All 18 buildings</span></div>
           <canvas id="conditionChart" height="200"></canvas>
         </div>
         <div class="panel">
-          <div class="panel-title"><span data-i18n="chart_cost_trend">Maintenance Cost Trend</span> <span data-i18n="chart_cost_trend_sub">NOK millions</span></div>
+          <div class="panel-title">Maintenance Cost Trend <span>NOK millions</span></div>
           <canvas id="costChart" height="200"></canvas>
         </div>
       </div>
-
       <div class="grid-6040">
         <div class="panel">
-          <div class="panel-title"><span data-i18n="panel_action_list">AI Priority Action List</span> <span data-i18n="panel_action_list_sub">Top 5 urgent</span></div>
+          <div class="panel-title">AI Priority Action List <span>Top 4 urgent</span></div>
           <div class="rec-card">
             <div class="rec-icon critical">🔴</div>
             <div class="rec-body">
-              <div class="rec-title" data-i18n="rec1_title">Marienlyst Skole — Roof Replacement</div>
-              <div class="rec-desc" data-i18n="rec1_desc">Roof condition score 28/100. AI predicts structural failure risk within 18 months if untreated. 412 students affected.</div>
-              <div class="rec-meta"><span class="rec-tag" data-i18n="rec1_t1">⏱ Immediate</span><span class="rec-tag">💰 3.2M NOK</span><span class="rec-tag" data-i18n="type_school">🏫 School</span></div>
+              <div class="rec-title">Marienlyst Skole — Roof Replacement</div>
+              <div class="rec-desc">Roof condition score 28/100. AI predicts structural failure risk within 18 months if untreated. 412 students affected.</div>
+              <div class="rec-meta"><span class="rec-tag">⏱ Immediate</span><span class="rec-tag">💰 3.2M NOK</span><span class="rec-tag">🏫 School</span></div>
             </div>
           </div>
           <div class="rec-card">
             <div class="rec-icon critical">🔴</div>
             <div class="rec-body">
-              <div class="rec-title" data-i18n="rec2_title">Grønnlia Sykehjem — HVAC System</div>
-              <div class="rec-desc" data-i18n="rec2_desc">Ventilation system age 31 years. CO₂ levels exceeded threshold 14× in past quarter. Health risk for 89 residents.</div>
-              <div class="rec-meta"><span class="rec-tag" data-i18n="rec2_t1">⏱ Q3 2026</span><span class="rec-tag">💰 2.8M NOK</span><span class="rec-tag" data-i18n="type_nursing">🏥 Nursing Home</span></div>
+              <div class="rec-title">Grønnlia Sykehjem — HVAC System</div>
+              <div class="rec-desc">Ventilation system age 31 years. CO₂ levels exceeded threshold 14× in past quarter. Health risk for 89 residents.</div>
+              <div class="rec-meta"><span class="rec-tag">⏱ Q3 2026</span><span class="rec-tag">💰 2.8M NOK</span><span class="rec-tag">🏥 Nursing Home</span></div>
             </div>
           </div>
           <div class="rec-card">
             <div class="rec-icon high">🟠</div>
             <div class="rec-body">
-              <div class="rec-title" data-i18n="rec3_title">Bjerke Kulturhus — Facade Renovation</div>
-              <div class="rec-desc" data-i18n="rec3_desc">Facade score 41/100. Moisture infiltration detected in 3 zones. Energy loss estimated 340 MWh/year above benchmark.</div>
-              <div class="rec-meta"><span class="rec-tag" data-i18n="rec3_t1">⏱ Q4 2026</span><span class="rec-tag">💰 5.6M NOK</span><span class="rec-tag" data-i18n="type_culture">🎭 Culture Center</span></div>
+              <div class="rec-title">Bjerke Kulturhus — Facade Renovation</div>
+              <div class="rec-desc">Facade score 41/100. Moisture infiltration detected in 3 zones. Energy loss estimated 340 MWh/year above benchmark.</div>
+              <div class="rec-meta"><span class="rec-tag">⏱ Q4 2026</span><span class="rec-tag">💰 5.6M NOK</span><span class="rec-tag">🎭 Culture Centre</span></div>
             </div>
           </div>
           <div class="rec-card">
             <div class="rec-icon high">🟠</div>
             <div class="rec-body">
-              <div class="rec-title" data-i18n="rec4_title">Sandviken Barnehage — Electrical Upgrade</div>
-              <div class="rec-desc" data-i18n="rec4_desc">Electrical panel from 1982. Inspection flagged 2 overloaded circuits. Fire safety compliance gap.</div>
-              <div class="rec-meta"><span class="rec-tag" data-i18n="rec4_t1">⏱ Q3 2026</span><span class="rec-tag">💰 0.9M NOK</span><span class="rec-tag" data-i18n="type_kinder">🏫 Kindergarten</span></div>
+              <div class="rec-title">Sandviken Barnehage — Electrical Upgrade</div>
+              <div class="rec-desc">Electrical panel from 1982. Inspection flagged 2 overloaded circuits. Fire safety compliance gap.</div>
+              <div class="rec-meta"><span class="rec-tag">⏱ Q3 2026</span><span class="rec-tag">💰 0.9M NOK</span><span class="rec-tag">🏫 Kindergarten</span></div>
             </div>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-title" data-i18n="panel_type_breakdown">Building Type Breakdown</div>
+          <div class="panel-title">Building Type Breakdown</div>
           <canvas id="typeChart" height="220"></canvas>
           <hr class="divider">
-          <div class="panel-title" data-i18n="panel_energy_rating">Energy Rating Portfolio</div>
-          <canvas id="energyChart" height="130"></canvas>
+          <div class="panel-title">Energy Rating Distribution</div>
+          <canvas id="energyChart" height="120"></canvas>
         </div>
       </div>
-
       <div class="grid-3">
         <div class="panel">
-          <div class="panel-title"><span data-i18n="panel_forecast">5-Year Cost Forecast</span> <span class="ai-badge">🤖 AI</span></div>
+          <div class="panel-title">5-Year Cost Forecast <span class="ai-badge" style="font-size:10px">🤖 AI</span></div>
           <canvas id="forecastChart" height="160"></canvas>
-          <div style="margin-top:12px;font-size:12px;color:var(--muted)" data-i18n="forecast_note">📌 Defer-and-repair scenario costs 2.3× more than proactive maintenance by 2031</div>
+          <div style="margin-top:12px;font-size:12px;color:var(--muted)">📌 Defer-and-repair costs <span class="text-red fw-600">2.3× more</span> than proactive by 2031</div>
         </div>
         <div class="panel">
-          <div class="panel-title" data-i18n="panel_risk_summary">Portfolio Risk Summary</div>
-          <div class="progress-wrap">
-            <div class="progress-label"><span data-i18n="risk_critical">🔴 Critical Risk</span><span class="text-red">4</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:22%;background:var(--red)"></div></div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label"><span data-i18n="risk_high">🟠 High Risk</span><span class="text-orange" style="color:var(--orange)">5</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:28%;background:var(--orange)"></div></div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label"><span data-i18n="risk_medium">🟡 Medium Risk</span><span class="text-yellow">6</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:33%;background:var(--yellow)"></div></div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label"><span data-i18n="risk_low">🟢 Low Risk</span><span class="text-green">3</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:17%;background:var(--green)"></div></div>
-          </div>
+          <div class="panel-title">Portfolio Risk Summary</div>
+          <div class="progress-wrap"><div class="progress-label"><span>🔴 Critical Risk</span><span class="text-red fw-600">4 buildings</span></div><div class="progress-bar"><div class="progress-fill" style="width:22%;background:var(--red)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>🟠 High Risk</span><span class="fw-600" style="color:var(--orange)">5 buildings</span></div><div class="progress-bar"><div class="progress-fill" style="width:28%;background:var(--orange)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>🟡 Medium Risk</span><span class="text-yellow fw-600">6 buildings</span></div><div class="progress-bar"><div class="progress-fill" style="width:33%;background:var(--yellow)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>🟢 Low Risk</span><span class="text-green fw-600">3 buildings</span></div><div class="progress-bar"><div class="progress-fill" style="width:17%;background:var(--green)"></div></div></div>
           <hr class="divider">
-          <div style="font-size:12px;color:var(--muted)"><span data-i18n="model_conf">Model confidence:</span> <span class="text-accent">91.3%</span></div>
+          <div class="fs-12 text-muted">Model confidence: <span class="text-accent fw-600">91.3%</span> (XGBoost + LSTM ensemble)</div>
         </div>
         <div class="panel">
-          <div class="panel-title" data-i18n="panel_data_completeness">Data Completeness</div>
-          <div class="progress-wrap"><div class="progress-label"><span data-i18n="data_inspection">Inspection Records</span><span>94%</span></div><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--accent)"></div></div></div>
-          <div class="progress-wrap"><div class="progress-label"><span data-i18n="data_energy">Energy Meters</span><span>88%</span></div><div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--accent)"></div></div></div>
-          <div class="progress-wrap"><div class="progress-label"><span data-i18n="data_bim">BIM Models</span><span>61%</span></div><div class="progress-bar"><div class="progress-fill" style="width:61%;background:var(--accent2)"></div></div></div>
-          <div class="progress-wrap"><div class="progress-label"><span data-i18n="data_iot">IoT Sensors</span><span>44%</span></div><div class="progress-bar"><div class="progress-fill" style="width:44%;background:var(--yellow)"></div></div></div>
-          <div class="progress-wrap"><div class="progress-label"><span data-i18n="data_logs">Maintenance Logs</span><span>100%</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
-          <div class="progress-wrap"><div class="progress-label"><span data-i18n="data_cost">Cost History</span><span>100%</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+          <div class="panel-title">Data Completeness</div>
+          <div class="progress-wrap"><div class="progress-label"><span>Inspection Records</span><span>94%</span></div><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--accent)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>Energy Meters</span><span>88%</span></div><div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--accent)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>BIM Models</span><span>61%</span></div><div class="progress-bar"><div class="progress-fill" style="width:61%;background:var(--accent2)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>IoT Sensors</span><span>44%</span></div><div class="progress-bar"><div class="progress-fill" style="width:44%;background:var(--yellow)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>Maintenance Logs</span><span>100%</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>Cost History</span><span>100%</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
         </div>
       </div>
     </div>
@@ -272,38 +282,26 @@
     <!-- PORTFOLIO -->
     <div class="page" id="page-portfolio">
       <div class="filter-bar">
-        <input type="text" id="search-input" data-i18n-placeholder="search_placeholder" placeholder="🔍  Search buildings..." oninput="filterTable()">
+        <input type="text" id="search-input" placeholder="🔍  Search buildings..." oninput="filterTable()">
         <select id="type-filter" onchange="filterTable()">
-          <option value="" data-i18n="filter_all_types">All Types</option>
-          <option value="Skole" data-i18n="type_school_opt">School</option>
-          <option value="Sykehjem" data-i18n="type_nursing_opt">Nursing Home</option>
-          <option value="Barnehage" data-i18n="type_kinder_opt">Kindergarten</option>
-          <option value="Rådhus" data-i18n="type_hall_opt">City Hall</option>
-          <option value="Kulturhus" data-i18n="type_culture_opt">Culture Center</option>
-          <option value="Idrettshall" data-i18n="type_sports_opt">Sports Hall</option>
+          <option value="">All Types</option>
+          <option value="Skole">School</option><option value="Sykehjem">Nursing Home</option>
+          <option value="Barnehage">Kindergarten</option><option value="Rådhus">City Hall</option>
+          <option value="Kulturhus">Culture Centre</option><option value="Idrettshall">Sports Hall</option>
         </select>
         <select id="risk-filter" onchange="filterTable()">
-          <option value="" data-i18n="filter_all_risk">All Risk Levels</option>
-          <option value="Critical" data-i18n="risk_critical_opt">Critical</option>
-          <option value="High" data-i18n="risk_high_opt">High</option>
-          <option value="Medium" data-i18n="risk_medium_opt">Medium</option>
-          <option value="Low" data-i18n="risk_low_opt">Low</option>
+          <option value="">All Risk Levels</option>
+          <option value="Critical">Critical</option><option value="High">High</option>
+          <option value="Medium">Medium</option><option value="Low">Low</option>
         </select>
-        <button class="btn btn-primary" onclick="showPage('recommendations')" data-i18n="btn_ai_report">Generate AI Report</button>
+        <button class="btn btn-primary" onclick="showPage('recommendations')">Generate AI Report</button>
       </div>
       <div class="panel">
         <table>
           <thead><tr>
-            <th data-i18n="th_building">Building</th>
-            <th data-i18n="th_type">Type</th>
-            <th data-i18n="th_built">Built</th>
-            <th data-i18n="th_area">Area (m²)</th>
-            <th data-i18n="th_condition">Condition</th>
-            <th data-i18n="th_risk">Risk</th>
-            <th data-i18n="th_pred5">AI Pred. 5yr</th>
-            <th data-i18n="th_cost">Ann. Cost (NOK)</th>
-            <th data-i18n="th_energy">Energy</th>
-            <th data-i18n="th_actions">Actions</th>
+            <th>Building</th><th>Type</th><th>Built</th><th>Area (m²)</th>
+            <th>Condition</th><th>Risk</th><th>AI Pred. 5yr</th>
+            <th>Ann. Cost (NOK)</th><th>Energy</th><th></th>
           </tr></thead>
           <tbody id="portfolio-body"></tbody>
         </table>
@@ -313,27 +311,25 @@
     <!-- PREDICTIONS -->
     <div class="page" id="page-predictions">
       <div class="cards">
-        <div class="card"><div class="card-label" data-i18n="pred_card1">Avg Predicted Condition (5yr)</div><div class="card-value text-red">49.2</div><div class="card-sub" data-i18n="pred_card1_sub">Down from current 61.4</div></div>
-        <div class="card"><div class="card-label" data-i18n="pred_card2">Buildings Below 40 by 2031</div><div class="card-value text-red">9</div><div class="card-sub" data-i18n="pred_card2_sub">Up from 4 today</div></div>
-        <div class="card"><div class="card-label" data-i18n="pred_card3">Total Intervention Cost</div><div class="card-value">284M</div><div class="card-sub" data-i18n="pred_card3_sub">NOK — 5yr proactive plan</div></div>
-        <div class="card"><div class="card-label" data-i18n="pred_card4">Model Accuracy (CV)</div><div class="card-value text-green">91.3%</div><div class="card-sub" data-i18n="pred_card4_sub">RMSE: 4.2 condition pts</div></div>
+        <div class="card"><div class="card-label">Avg Predicted Condition (5yr)</div><div class="card-value text-red">49.2</div><div class="card-sub">Down from current 61.4</div></div>
+        <div class="card"><div class="card-label">Buildings Below 40 by 2031</div><div class="card-value text-red">9</div><div class="card-sub">Up from 4 today</div></div>
+        <div class="card"><div class="card-label">Total Intervention Cost</div><div class="card-value">284M</div><div class="card-sub">NOK — 5-yr proactive plan</div></div>
+        <div class="card"><div class="card-label">Model Accuracy (CV)</div><div class="card-value text-green">91.3%</div><div class="card-sub">RMSE: 4.2 condition pts</div></div>
       </div>
       <div class="grid-2">
         <div class="panel">
-          <div class="panel-title"><span data-i18n="chart_trajectory">Condition Trajectory — Portfolio Average</span> <span class="ai-badge">🤖 LSTM</span></div>
+          <div class="panel-title">Condition Trajectory — Portfolio Average <span class="ai-badge" style="font-size:10px">🤖 LSTM</span></div>
           <canvas id="trajectoryChart" height="220"></canvas>
         </div>
         <div class="panel">
-          <div class="panel-title" data-i18n="chart_bld_forecast">Individual Building Forecasts (2026–2031)</div>
+          <div class="panel-title">Individual Building Forecasts (2026–2031)</div>
           <canvas id="buildingForecastChart" height="220"></canvas>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-title"><span data-i18n="pred_table_title">AI Deterioration Prediction by Building</span> <span data-i18n="pred_table_sub">Sorted by predicted 5-year change</span></div>
+        <div class="panel-title">AI Deterioration Prediction by Building <span>Sorted by 5-year change (worst first)</span></div>
         <table><thead><tr>
-          <th data-i18n="th_building">Building</th><th data-i18n="th_type">Type</th>
-          <th data-i18n="th_current">Current</th><th data-i18n="th_1yr">1-yr</th><th data-i18n="th_3yr">3-yr</th><th data-i18n="th_5yr">5-yr</th>
-          <th data-i18n="th_delta">Δ Change</th><th data-i18n="th_key_risk">Key Risk Factor</th><th data-i18n="th_conf">Confidence</th>
+          <th>Building</th><th>Type</th><th>Current</th><th>1-yr</th><th>3-yr</th><th>5-yr</th><th>Δ Change</th><th>Key Risk Factor</th><th>Risk</th>
         </tr></thead><tbody id="pred-table-body"></tbody></table>
       </div>
     </div>
@@ -342,18 +338,18 @@
     <div class="page" id="page-recommendations">
       <div class="flex-between" style="margin-bottom:20px">
         <div>
-          <div class="section-title" data-i18n="rec_title">AI Maintenance Recommendations</div>
-          <div class="text-muted fs-12" data-i18n="rec_subtitle">Generated 2026-06-16 · Based on inspection data, cost models, and condition forecasts</div>
+          <div class="section-title">AI Maintenance Recommendations</div>
+          <div class="text-muted fs-12">Generated 2026-06-16 · Based on inspection data, cost models, and condition forecasts</div>
         </div>
         <div class="flex gap-8">
-          <button class="btn btn-outline" data-i18n="btn_export">Export PDF</button>
-          <button class="btn btn-primary" data-i18n="btn_send">Send to Planner</button>
+          <button class="btn btn-outline">Export PDF</button>
+          <button class="btn btn-primary">Send to Planner</button>
         </div>
       </div>
       <div class="grid-3" style="margin-bottom:20px">
-        <div class="panel" style="border-color:var(--red)"><div class="panel-title" style="color:var(--red)" data-i18n="rec_immediate">🔴 Immediate (0–6 months)</div><div style="font-size:24px;font-weight:700;margin-bottom:4px">4</div><div class="text-muted fs-12">Total: 7.1M NOK</div></div>
-        <div class="panel" style="border-color:var(--orange)"><div class="panel-title" style="color:var(--orange)" data-i18n="rec_short">🟠 Short-term (6–18 months)</div><div style="font-size:24px;font-weight:700;margin-bottom:4px">7</div><div class="text-muted fs-12">Total: 28.4M NOK</div></div>
-        <div class="panel" style="border-color:var(--yellow)"><div class="panel-title" style="color:var(--yellow)" data-i18n="rec_medium">🟡 Medium-term (18–60 months)</div><div style="font-size:24px;font-weight:700;margin-bottom:4px">11</div><div class="text-muted fs-12">Total: 98.2M NOK</div></div>
+        <div class="panel" style="border-color:var(--red)"><div class="panel-title" style="color:var(--red)">🔴 Immediate (0–6 months)</div><div style="font-size:24px;font-weight:800;margin-bottom:4px">4</div><div class="text-muted fs-12">Total: 7.1M NOK</div></div>
+        <div class="panel" style="border-color:var(--orange)"><div class="panel-title" style="color:var(--orange)">🟠 Short-term (6–18 months)</div><div style="font-size:24px;font-weight:800;margin-bottom:4px">7</div><div class="text-muted fs-12">Total: 28.4M NOK</div></div>
+        <div class="panel" style="border-color:var(--yellow)"><div class="panel-title" style="color:var(--yellow)">🟡 Medium-term (18–60 months)</div><div style="font-size:24px;font-weight:800;margin-bottom:4px">11</div><div class="text-muted fs-12">Total: 98.2M NOK</div></div>
       </div>
       <div id="rec-list"></div>
     </div>
@@ -362,63 +358,19 @@
     <div class="page" id="page-risk">
       <div class="grid-2">
         <div class="panel">
-          <div class="panel-title" data-i18n="panel_risk_matrix">Risk Matrix — Likelihood vs. Consequence</div>
-          <div style="display:grid;grid-template-columns:24px 1fr;gap:4px;align-items:center">
-            <div style="writing-mode:vertical-rl;text-align:center;color:var(--muted);font-size:11px;transform:rotate(180deg);grid-row:1/6;padding:8px 0" data-i18n="risk_axis_y">← LIKELIHOOD →</div>
-            <div>
-              <div style="display:flex;gap:4px;margin-bottom:4px"><div style="width:24px;text-align:center;font-size:10px;color:var(--muted)">5</div>
-                <div class="risk-cell" style="background:rgba(245,158,11,.25)"><div><div class="count">1</div><div class="label">BLD-07</div></div></div>
-                <div class="risk-cell" style="background:rgba(249,115,22,.3)"><div><div class="count">0</div></div></div>
-                <div class="risk-cell" style="background:rgba(239,68,68,.3)"><div><div class="count">2</div><div class="label">BLD-01,12</div></div></div>
-                <div class="risk-cell" style="background:rgba(239,68,68,.4)"><div><div class="count">1</div><div class="label">BLD-03</div></div></div>
-                <div class="risk-cell" style="background:rgba(239,68,68,.5)"><div><div class="count">0</div></div></div>
-              </div>
-              <div style="display:flex;gap:4px;margin-bottom:4px"><div style="width:24px;text-align:center;font-size:10px;color:var(--muted)">4</div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.2)"><div><div class="count">0</div></div></div>
-                <div class="risk-cell" style="background:rgba(245,158,11,.2)"><div><div class="count">1</div><div class="label">BLD-15</div></div></div>
-                <div class="risk-cell" style="background:rgba(245,158,11,.3)"><div><div class="count">2</div><div class="label">BLD-09,11</div></div></div>
-                <div class="risk-cell" style="background:rgba(249,115,22,.3)"><div><div class="count">1</div><div class="label">BLD-06</div></div></div>
-                <div class="risk-cell" style="background:rgba(239,68,68,.3)"><div><div class="count">0</div></div></div>
-              </div>
-              <div style="display:flex;gap:4px;margin-bottom:4px"><div style="width:24px;text-align:center;font-size:10px;color:var(--muted)">3</div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.15)"><div><div class="count">1</div><div class="label">BLD-17</div></div></div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.2)"><div><div class="count">0</div></div></div>
-                <div class="risk-cell" style="background:rgba(245,158,11,.2)"><div><div class="count">3</div><div class="label">BLD-05,08,14</div></div></div>
-                <div class="risk-cell" style="background:rgba(245,158,11,.25)"><div><div class="count">1</div><div class="label">BLD-10</div></div></div>
-                <div class="risk-cell" style="background:rgba(249,115,22,.25)"><div><div class="count">0</div></div></div>
-              </div>
-              <div style="display:flex;gap:4px;margin-bottom:4px"><div style="width:24px;text-align:center;font-size:10px;color:var(--muted)">2</div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.1)"><div><div class="count">2</div><div class="label">BLD-16,18</div></div></div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.15)"><div><div class="count">1</div><div class="label">BLD-13</div></div></div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.2)"><div><div class="count">0</div></div></div>
-                <div class="risk-cell" style="background:rgba(245,158,11,.15)"><div><div class="count">2</div><div class="label">BLD-02,04</div></div></div>
-                <div class="risk-cell" style="background:rgba(245,158,11,.2)"><div><div class="count">0</div></div></div>
-              </div>
-              <div style="display:flex;gap:4px;margin-bottom:8px"><div style="width:24px;text-align:center;font-size:10px;color:var(--muted)">1</div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.08)"><div><div class="count">1</div><div class="label">BLD-18</div></div></div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.1)"><div><div class="count">0</div></div></div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.12)"><div><div class="count">0</div></div></div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.15)"><div><div class="count">0</div></div></div>
-                <div class="risk-cell" style="background:rgba(34,197,94,.18)"><div><div class="count">0</div></div></div>
-              </div>
-              <div style="display:flex;gap:4px;padding-left:28px">
-                <div style="flex:1;text-align:center;font-size:10px;color:var(--muted)">1<br><span data-i18n="cons_1">Negligible</span></div>
-                <div style="flex:1;text-align:center;font-size:10px;color:var(--muted)">2<br><span data-i18n="cons_2">Minor</span></div>
-                <div style="flex:1;text-align:center;font-size:10px;color:var(--muted)">3<br><span data-i18n="cons_3">Moderate</span></div>
-                <div style="flex:1;text-align:center;font-size:10px;color:var(--muted)">4<br><span data-i18n="cons_4">Major</span></div>
-                <div style="flex:1;text-align:center;font-size:10px;color:var(--muted)">5<br><span data-i18n="cons_5">Catastrophic</span></div>
-              </div>
-              <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px" data-i18n="risk_axis_x">← CONSEQUENCE →</div>
-            </div>
+          <div class="panel-title">Risk Matrix — Likelihood × Consequence</div>
+          <div style="display:grid;grid-template-columns:22px 1fr;gap:4px;align-items:start">
+            <div style="writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;color:var(--muted);font-size:10px;grid-row:1/6;padding:8px 0">← LIKELIHOOD →</div>
+            <div id="risk-matrix-cells"></div>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-title" data-i18n="panel_risk_factor">Risk Factor Analysis</div>
+          <div class="panel-title">Risk Factor Analysis — Radar</div>
           <canvas id="riskRadarChart" height="240"></canvas>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-title" data-i18n="panel_risk_bar">Risk Score Breakdown by Building</div>
+        <div class="panel-title">Condition Score by Building <span>Sorted ascending — lower = more urgent</span></div>
         <canvas id="riskBarChart" height="160"></canvas>
       </div>
     </div>
@@ -428,39 +380,39 @@
       <div class="grid-6040">
         <div>
           <div class="panel" style="margin-bottom:16px">
-            <div class="panel-title" data-i18n="panel_budget_params">Budget Optimization Parameters</div>
-            <div style="margin-bottom:16px">
-              <div class="flex-between" style="margin-bottom:8px"><label class="fs-12" data-i18n="budget_label">Annual Budget Constraint</label><span class="text-accent fw-600" id="budget-val">80M NOK</span></div>
+            <div class="panel-title">Budget Optimization Parameters</div>
+            <div style="margin-bottom:18px">
+              <div class="flex-between" style="margin-bottom:8px"><label class="fs-12">Annual Budget Constraint</label><span class="text-accent fw-600" id="budget-val">80M NOK</span></div>
               <input type="range" min="40" max="160" value="80" step="5" oninput="updateBudget(this.value)">
             </div>
-            <div style="margin-bottom:16px">
-              <div class="flex-between" style="margin-bottom:8px"><label class="fs-12" data-i18n="horizon_label">Planning Horizon</label><span class="text-accent fw-600" id="horizon-val"><span data-i18n="years_5">5 years</span></span></div>
+            <div style="margin-bottom:18px">
+              <div class="flex-between" style="margin-bottom:8px"><label class="fs-12">Planning Horizon</label><span class="text-accent fw-600" id="horizon-val">5 years</span></div>
               <input type="range" min="1" max="10" value="5" oninput="updateHorizon(this.value)">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" checked> <span data-i18n="opt_safety">Safety compliance first</span></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" checked> <span data-i18n="opt_energy">Energy efficiency weight</span></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox"> <span data-i18n="opt_disruption">Minimize disruption</span></label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" checked> <span data-i18n="opt_co2">CO₂ reduction target</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" checked> Safety compliance first</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" checked> Energy efficiency weight</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox"> Minimise disruption</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" checked> CO₂ reduction target</label>
             </div>
           </div>
           <div class="panel">
-            <div class="panel-title"><span data-i18n="panel_allocation">Optimized 5-Year Allocation</span> <span class="ai-badge">🤖 Pareto</span></div>
+            <div class="panel-title">Optimised 5-Year Allocation <span class="ai-badge" style="font-size:10px">🤖 Pareto</span></div>
             <canvas id="budgetAllocationChart" height="200"></canvas>
           </div>
         </div>
         <div>
           <div class="panel" style="margin-bottom:16px">
-            <div class="panel-title" data-i18n="panel_scenario">Scenario Comparison</div>
+            <div class="panel-title">Scenario Comparison</div>
             <canvas id="scenarioChart" height="200"></canvas>
             <div style="margin-top:14px;font-size:12px">
-              <div class="flex-between" style="margin-bottom:6px"><span class="text-muted" data-i18n="scenario_none">Do-nothing (baseline)</span><span class="text-red fw-600" data-i18n="scenario_none_cost">Cost 2031: 347M NOK</span></div>
-              <div class="flex-between" style="margin-bottom:6px"><span class="text-muted" data-i18n="scenario_reactive">Reactive maintenance</span><span class="text-yellow fw-600" data-i18n="scenario_reactive_cost">Cost 2031: 218M NOK</span></div>
-              <div class="flex-between"><span class="text-muted" data-i18n="scenario_ai">AI-optimized proactive</span><span class="text-green fw-600" data-i18n="scenario_ai_cost">Cost 2031: 142M NOK</span></div>
+              <div class="flex-between" style="margin-bottom:6px"><span class="text-muted">Do-nothing (baseline)</span><span class="text-red fw-600">2031: 347M NOK</span></div>
+              <div class="flex-between" style="margin-bottom:6px"><span class="text-muted">Reactive maintenance</span><span class="text-yellow fw-600">2031: 218M NOK</span></div>
+              <div class="flex-between"><span class="text-muted">AI-optimised proactive</span><span class="text-green fw-600">2031: 142M NOK</span></div>
             </div>
           </div>
           <div class="panel">
-            <div class="panel-title"><span data-i18n="panel_cond_proj">Projected Condition</span> <span data-i18n="panel_cond_proj_sub">Under optimized plan</span></div>
+            <div class="panel-title">Projected Condition <span>Under optimised plan</span></div>
             <canvas id="condProjectChart" height="160"></canvas>
           </div>
         </div>
@@ -470,56 +422,47 @@
     <!-- DATA EXPLORER -->
     <div class="page" id="page-data">
       <div class="flex-between" style="margin-bottom:16px">
-        <div class="section-title" data-i18n="data_title">Simulated Dataset — 18 Public Buildings</div>
+        <div class="section-title">Simulated Dataset — 18 Public Buildings</div>
         <div class="flex gap-8">
           <span class="ai-badge">18 rows × 24 features</span>
-          <button class="btn btn-outline" data-i18n="btn_export_csv">Export CSV</button>
+          <button class="btn btn-outline">Export CSV</button>
         </div>
       </div>
       <div class="grid-3" style="margin-bottom:20px">
         <div class="panel">
-          <div class="card-label" data-i18n="data_sources">Primary Data Sources</div>
-          <div style="margin-top:10px;font-size:13px;line-height:2">
-            📋 <span data-i18n="ds_inspection">Inspection Reports (FDV)</span><br>
-            📊 <span data-i18n="ds_energy">Energy Metering (AMS)</span><br>
-            🏗️ <span data-i18n="ds_bim">BIM Models (IFC/Revit)</span><br>
-            🔧 <span data-i18n="ds_cmms">CMMS Work Orders</span><br>
-            💰 <span data-i18n="ds_cost">Municipal Cost Records</span><br>
-            🌡️ <span data-i18n="ds_iot">IoT Sensor Streams</span>
+          <div class="card-label" style="margin-bottom:10px">Primary Data Sources</div>
+          <div style="font-size:13px;line-height:2.1">
+            📋 Inspection Reports (FDV)<br>📊 Energy Metering (AMS)<br>
+            🏗️ BIM Models (IFC/Revit)<br>🔧 CMMS Work Orders<br>
+            💰 Municipal Cost Records<br>🌡️ IoT Sensor Streams
           </div>
         </div>
         <div class="panel">
-          <div class="card-label" data-i18n="data_features">Feature Categories</div>
-          <div style="margin-top:10px;font-size:13px;line-height:2">
-            🏢 <span data-i18n="feat_identity">Building Identity (5 features)</span><br>
-            📐 <span data-i18n="feat_physical">Physical Attributes (4 features)</span><br>
-            📉 <span data-i18n="feat_condition">Condition Scores (6 features)</span><br>
-            💸 <span data-i18n="feat_financial">Financial Data (4 features)</span><br>
-            ⚡ <span data-i18n="feat_energy">Energy & Environment (3 features)</span><br>
-            🤖 <span data-i18n="feat_ai">AI Derived Features (2 features)</span>
+          <div class="card-label" style="margin-bottom:10px">Feature Categories</div>
+          <div style="font-size:13px;line-height:2.1">
+            🏢 Building Identity (5 features)<br>📐 Physical Attributes (4 features)<br>
+            📉 Condition Scores (6 features)<br>💸 Financial Data (4 features)<br>
+            ⚡ Energy & Environment (3 features)<br>🤖 AI-Derived Features (2 features)
           </div>
         </div>
         <div class="panel">
-          <div class="card-label" data-i18n="data_quality">Data Quality Metrics</div>
-          <div style="margin-top:10px">
-            <div class="progress-wrap"><div class="progress-label"><span data-i18n="dq_completeness">Completeness</span><span>94.2%</span></div><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--green)"></div></div></div>
-            <div class="progress-wrap"><div class="progress-label"><span data-i18n="dq_accuracy">Accuracy</span><span>89.7%</span></div><div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--accent)"></div></div></div>
-            <div class="progress-wrap"><div class="progress-label"><span data-i18n="dq_timeliness">Timeliness</span><span>82.1%</span></div><div class="progress-bar"><div class="progress-fill" style="width:82%;background:var(--yellow)"></div></div></div>
-          </div>
+          <div class="card-label" style="margin-bottom:10px">Data Quality Metrics</div>
+          <div class="progress-wrap"><div class="progress-label"><span>Completeness</span><span>94.2%</span></div><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--green)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>Accuracy</span><span>89.7%</span></div><div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--accent)"></div></div></div>
+          <div class="progress-wrap"><div class="progress-label"><span>Timeliness</span><span>82.1%</span></div><div class="progress-bar"><div class="progress-fill" style="width:82%;background:var(--yellow)"></div></div></div>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-title"><span data-i18n="data_table_title">Full Dataset — All Features</span></div>
+        <div class="panel-title">Full Dataset — All 24 Features</div>
         <div style="overflow-x:auto">
-          <table id="data-full-table" style="min-width:1400px">
+          <table style="min-width:1600px">
             <thead><tr>
-              <th>ID</th><th data-i18n="th_building">Building</th><th data-i18n="th_type">Type</th><th data-i18n="th_muni">Municipality</th><th data-i18n="th_built">Built</th>
-              <th data-i18n="th_area">Area m²</th><th data-i18n="th_floors">Floors</th><th data-i18n="th_overall">Overall</th><th data-i18n="th_roof">Roof</th>
-              <th data-i18n="th_facade">Facade</th><th>HVAC</th><th data-i18n="th_elec">Electrical</th><th data-i18n="th_plumb">Plumbing</th>
-              <th data-i18n="th_found">Foundation</th><th data-i18n="th_energy_class">Energy</th><th>kWh/m²</th>
-              <th data-i18n="th_ann_cost">Ann.Cost(KNOK)</th><th data-i18n="th_backlog">Backlog(KNOK)</th><th data-i18n="th_last_insp">Last Insp.</th>
-              <th data-i18n="th_inspector">Inspector</th><th data-i18n="th_risk">Risk</th><th data-i18n="th_priority">Priority</th>
-              <th data-i18n="th_pred5">Pred.5yr</th><th data-i18n="th_life">Life(yr)</th>
+              <th>ID</th><th>Building Name</th><th>Type</th><th>Municipality</th><th>Year Built</th>
+              <th>Area (m²)</th><th>Floors</th><th>Overall</th><th>Roof</th><th>Facade</th>
+              <th>HVAC</th><th>Electrical</th><th>Plumbing</th><th>Foundation</th>
+              <th>Energy Class</th><th>kWh/m²/yr</th><th>Ann. Cost (kNOK)</th><th>Backlog (kNOK)</th>
+              <th>Last Inspection</th><th>Inspector</th><th>Risk Level</th>
+              <th>Priority Score</th><th>AI Pred. 5yr</th><th>Remaining Life (yr)</th>
             </tr></thead>
             <tbody id="data-table-body"></tbody>
           </table>
@@ -535,7 +478,7 @@
   <div class="modal">
     <div class="modal-header">
       <div>
-        <div style="font-size:18px;font-weight:700" id="modal-title"></div>
+        <div style="font-size:18px;font-weight:800" id="modal-title"></div>
         <div class="text-muted fs-12" style="margin-top:4px" id="modal-subtitle"></div>
       </div>
       <button class="modal-close" onclick="closeModal()">×</button>
@@ -545,426 +488,118 @@
 </div>
 
 <script>
-// ============================================================
-// TRANSLATIONS
-// ============================================================
-const T = {
-  en: {
-    logo_sub:"Asset Management Platform",
-    nav_overview:"Overview", nav_dashboard:"Dashboard", nav_portfolio:"Portfolio",
-    nav_ai:"AI Analysis", nav_predictions:"AI Predictions", nav_recommendations:"Recommendations",
-    nav_risk:"Risk Assessment", nav_planning:"Planning", nav_budget:"Budget Optimizer", nav_data:"Data Explorer",
-    footer_text:"Municipality: Oslo / Bergen<br>Last sync: 2026-06-16 08:30",
-    status_online:"System Online", buildings_count:"Buildings",
-    page_dashboard:"Portfolio Dashboard", page_portfolio:"Building Portfolio",
-    page_predictions:"AI Condition Predictions", page_recommendations:"Maintenance Recommendations",
-    page_risk:"Risk Assessment", page_budget:"Budget Optimizer", page_data:"Data Explorer",
-    card_avg_cond:"Portfolio Condition", card_avg_cond_sub:"Average score / 100", card_avg_cond_trend:"▼ 3.2 pts vs last year",
-    card_critical:"Critical Buildings", card_critical_sub:"Score below 40", card_critical_trend:"▲ 1 new since Q1",
-    card_backlog:"Deferred Maintenance", card_backlog_sub:"NOK — backlog cost", card_backlog_trend:"▲ 18M vs 2025",
-    card_budget:"Budget Utilization", card_budget_sub:"62.4M NOK used / 80M", card_budget_trend:"FY 2026",
-    chart_cond_dist:"Condition Score Distribution", chart_cond_dist_sub:"All 18 buildings",
-    chart_cost_trend:"Maintenance Cost Trend", chart_cost_trend_sub:"NOK millions",
-    panel_action_list:"AI Priority Action List", panel_action_list_sub:"Top 5 urgent",
-    rec1_title:"Marienlyst Skole — Roof Replacement",
-    rec1_desc:"Roof condition score 28/100. AI predicts structural failure risk within 18 months if untreated. 412 students affected.",
-    rec1_t1:"⏱ Immediate", type_school:"🏫 School",
-    rec2_title:"Grønnlia Sykehjem — HVAC System",
-    rec2_desc:"Ventilation system age 31 years. CO₂ levels exceeded threshold 14× in past quarter. Health risk for 89 residents.",
-    rec2_t1:"⏱ Q3 2026", type_nursing:"🏥 Nursing Home",
-    rec3_title:"Bjerke Kulturhus — Facade Renovation",
-    rec3_desc:"Facade score 41/100. Moisture infiltration detected in 3 zones. Energy loss estimated 340 MWh/year above benchmark.",
-    rec3_t1:"⏱ Q4 2026", type_culture:"🎭 Culture Center",
-    rec4_title:"Sandviken Barnehage — Electrical Upgrade",
-    rec4_desc:"Electrical panel from 1982. Inspection flagged 2 overloaded circuits. Fire safety compliance gap.",
-    rec4_t1:"⏱ Q3 2026", type_kinder:"🏫 Kindergarten",
-    panel_type_breakdown:"Building Type Breakdown", panel_energy_rating:"Energy Rating Portfolio",
-    panel_forecast:"5-Year Cost Forecast", forecast_note:"📌 Defer-and-repair scenario costs 2.3× more than proactive maintenance by 2031",
-    panel_risk_summary:"Portfolio Risk Summary",
-    risk_critical:"🔴 Critical Risk", risk_high:"🟠 High Risk", risk_medium:"🟡 Medium Risk", risk_low:"🟢 Low Risk",
-    model_conf:"Model confidence:",
-    panel_data_completeness:"Data Completeness",
-    data_inspection:"Inspection Records", data_energy:"Energy Meters", data_bim:"BIM Models",
-    data_iot:"IoT Sensors", data_logs:"Maintenance Logs", data_cost:"Cost History",
-    search_placeholder:"🔍  Search buildings...",
-    filter_all_types:"All Types", type_school_opt:"School", type_nursing_opt:"Nursing Home",
-    type_kinder_opt:"Kindergarten", type_hall_opt:"City Hall", type_culture_opt:"Culture Center", type_sports_opt:"Sports Hall",
-    filter_all_risk:"All Risk Levels", risk_critical_opt:"Critical", risk_high_opt:"High", risk_medium_opt:"Medium", risk_low_opt:"Low",
-    btn_ai_report:"Generate AI Report",
-    th_building:"Building", th_type:"Type", th_built:"Built", th_area:"Area (m²)", th_condition:"Condition",
-    th_risk:"Risk", th_pred5:"AI Pred. 5yr", th_cost:"Ann. Cost (NOK)", th_energy:"Energy", th_actions:"Actions",
-    btn_detail:"Detail",
-    pred_card1:"Avg Predicted Condition (5yr)", pred_card1_sub:"Down from current 61.4",
-    pred_card2:"Buildings Below 40 by 2031", pred_card2_sub:"Up from 4 today",
-    pred_card3:"Total Intervention Cost", pred_card3_sub:"NOK — 5yr proactive plan",
-    pred_card4:"Model Accuracy (CV)", pred_card4_sub:"RMSE: 4.2 condition pts",
-    chart_trajectory:"Condition Trajectory — Portfolio Average", chart_bld_forecast:"Individual Building Forecasts (2026–2031)",
-    pred_table_title:"AI Deterioration Prediction by Building", pred_table_sub:"Sorted by predicted 5-year change",
-    th_current:"Current", th_1yr:"1-yr", th_3yr:"3-yr", th_5yr:"5-yr",
-    th_delta:"Δ Change", th_key_risk:"Key Risk Factor", th_conf:"Confidence",
-    rf_school:"Roof + facade age", rf_nursing:"HVAC deterioration", rf_kinder:"Foundation moisture",
-    rf_culture:"Facade insulation", rf_sports:"Roof drainage", rf_hall:"Mechanical systems",
-    rec_title:"AI Maintenance Recommendations",
-    rec_subtitle:"Generated 2026-06-16 · Based on inspection data, cost models, and condition forecasts",
-    btn_export:"Export PDF", btn_send:"Send to Planner",
-    rec_immediate:"🔴 Immediate (0–6 months)", rec_short:"🟠 Short-term (6–18 months)", rec_medium:"🟡 Medium-term (18–60 months)",
-    shap_label:"SHAP Explanation:",
-    panel_risk_matrix:"Risk Matrix — Likelihood vs. Consequence",
-    risk_axis_y:"← LIKELIHOOD →", risk_axis_x:"← CONSEQUENCE →",
-    cons_1:"Negligible", cons_2:"Minor", cons_3:"Moderate", cons_4:"Major", cons_5:"Catastrophic",
-    panel_risk_factor:"Risk Factor Analysis", panel_risk_bar:"Risk Score Breakdown by Building",
-    panel_budget_params:"Budget Optimization Parameters",
-    budget_label:"Annual Budget Constraint", horizon_label:"Planning Horizon", years_5:"5 years",
-    opt_safety:"Safety compliance first", opt_energy:"Energy efficiency weight",
-    opt_disruption:"Minimize disruption", opt_co2:"CO₂ reduction target",
-    panel_allocation:"Optimized 5-Year Allocation", panel_scenario:"Scenario Comparison",
-    scenario_none:"Do-nothing (baseline)", scenario_none_cost:"Cost 2031: 347M NOK",
-    scenario_reactive:"Reactive maintenance", scenario_reactive_cost:"Cost 2031: 218M NOK",
-    scenario_ai:"AI-optimized proactive", scenario_ai_cost:"Cost 2031: 142M NOK",
-    panel_cond_proj:"Projected Condition", panel_cond_proj_sub:"Under optimized plan",
-    data_title:"Simulated Dataset — 18 Public Buildings", btn_export_csv:"Export CSV",
-    data_sources:"Primary Data Sources",
-    ds_inspection:"Inspection Reports (FDV)", ds_energy:"Energy Metering (AMS)",
-    ds_bim:"BIM Models (IFC/Revit)", ds_cmms:"CMMS Work Orders",
-    ds_cost:"Municipal Cost Records", ds_iot:"IoT Sensor Streams",
-    data_features:"Feature Categories",
-    feat_identity:"Building Identity (5 features)", feat_physical:"Physical Attributes (4 features)",
-    feat_condition:"Condition Scores (6 features)", feat_financial:"Financial Data (4 features)",
-    feat_energy:"Energy & Environment (3 features)", feat_ai:"AI Derived Features (2 features)",
-    data_quality:"Data Quality Metrics",
-    dq_completeness:"Completeness", dq_accuracy:"Accuracy", dq_timeliness:"Timeliness",
-    data_table_title:"Full Dataset — All Features",
-    th_muni:"Municipality", th_floors:"Floors", th_overall:"Overall", th_roof:"Roof",
-    th_facade:"Facade", th_elec:"Electrical", th_plumb:"Plumbing", th_found:"Foundation",
-    th_energy_class:"Energy", th_ann_cost:"Ann.Cost(KNOK)", th_backlog:"Backlog(KNOK)",
-    th_last_insp:"Last Insp.", th_inspector:"Inspector", th_priority:"Priority", th_life:"Life(yr)",
-    modal_overall:"Overall Condition", modal_pred:"AI Prediction 5yr", modal_delta:"Δ pts",
-    modal_life:"Remaining Life", modal_major:"Est. major refurb", modal_annual:"Annual Cost",
-    modal_backlog:"Backlog", modal_energy_use:"Energy Use", modal_admin:"Admin",
-    modal_last_insp:"Last Inspection", modal_inspector:"Inspector", modal_priority:"Priority Score",
-    comp_roof:"Roof", comp_facade:"Facade", comp_hvac:"HVAC", comp_elec:"Electrical",
-    comp_plumb:"Plumbing", comp_found:"Foundation",
-    chart_actual:"Actual Cost", chart_backlog:"Backlog",
-    chart_hist:"Historical Avg", chart_proactive:"AI Forecast (proactive)", chart_baseline:"AI Forecast (baseline)",
-    chart_critical:"Critical Repairs", chart_preventive:"Preventive Maint.",
-    chart_energy_ret:"Energy Retrofit", chart_admin:"Administrative",
-    chart_donothing:"Do-nothing", chart_reactive:"Reactive", chart_optimized:"Optimized",
-    chart_opt_plan:"Portfolio Avg (optimized)", chart_base_plan:"Portfolio Avg (baseline)",
-    radar_structural:"Structural Integrity", radar_hvac:"HVAC Condition", radar_fire:"Fire Safety",
-    radar_energy:"Energy Performance", radar_water:"Water Damage", radar_elec:"Electrical Safety",
-    radar_avg:"Portfolio Average", radar_critical:"Critical Buildings",
-  },
-  zh: {
-    logo_sub:"资产管理平台",
-    nav_overview:"概览", nav_dashboard:"仪表盘", nav_portfolio:"建筑档案",
-    nav_ai:"AI 分析", nav_predictions:"AI 预测", nav_recommendations:"维修建议",
-    nav_risk:"风险评估", nav_planning:"规划", nav_budget:"预算优化", nav_data:"数据浏览",
-    footer_text:"市政区：奥斯陆 / 卑尔根<br>最后同步：2026-06-16 08:30",
-    status_online:"系统正常", buildings_count:"栋建筑",
-    page_dashboard:"组合仪表盘", page_portfolio:"建筑档案",
-    page_predictions:"AI 状态预测", page_recommendations:"维修建议",
-    page_risk:"风险评估", page_budget:"预算优化器", page_data:"数据浏览器",
-    card_avg_cond:"组合平均状态", card_avg_cond_sub:"平均分 / 100", card_avg_cond_trend:"▼ 较去年降 3.2 分",
-    card_critical:"严重问题建筑", card_critical_sub:"评分低于 40 分", card_critical_trend:"▲ Q1 以来新增 1 栋",
-    card_backlog:"积压维修费用", card_backlog_sub:"挪威克朗 — 待处理成本", card_backlog_trend:"▲ 较 2025 年增加 1800 万",
-    card_budget:"预算执行率", card_budget_sub:"已用 6240 万 / 8000 万克朗", card_budget_trend:"2026 财年",
-    chart_cond_dist:"状态评分分布", chart_cond_dist_sub:"全部 18 栋建筑",
-    chart_cost_trend:"维修成本趋势", chart_cost_trend_sub:"百万挪威克朗",
-    panel_action_list:"AI 优先行动清单", panel_action_list_sub:"前 5 项紧急事项",
-    rec1_title:"Marienlyst 学校 — 屋顶更换",
-    rec1_desc:"屋顶状态评分 28/100。AI 预测若不处理，18 个月内存在结构失效风险，影响 412 名学生。",
-    rec1_t1:"⏱ 立即处理", type_school:"🏫 学校",
-    rec2_title:"Grønnlia 养老院 — 暖通空调系统",
-    rec2_desc:"通风系统已使用 31 年。上季度 CO₂ 浓度超标 14 次，影响 89 位住户健康。",
-    rec2_t1:"⏱ 2026 年 Q3", type_nursing:"🏥 养老院",
-    rec3_title:"Bjerke 文化中心 — 立面翻新",
-    rec3_desc:"立面评分 41/100。检测到 3 处潮湿渗透区域，能耗超基准 340 MWh/年。",
-    rec3_t1:"⏱ 2026 年 Q4", type_culture:"🎭 文化中心",
-    rec4_title:"Sandviken 幼儿园 — 电气升级",
-    rec4_desc:"配电盘建于 1982 年，检查发现 2 个过载回路，存在消防安全合规缺口。",
-    rec4_t1:"⏱ 2026 年 Q3", type_kinder:"🏫 幼儿园",
-    panel_type_breakdown:"建筑类型分布", panel_energy_rating:"能效等级分布",
-    panel_forecast:"5 年成本预测", forecast_note:"📌 拖延修缮方案到 2031 年的成本是主动维护方案的 2.3 倍",
-    panel_risk_summary:"组合风险概览",
-    risk_critical:"🔴 严重风险", risk_high:"🟠 高风险", risk_medium:"🟡 中等风险", risk_low:"🟢 低风险",
-    model_conf:"模型置信度：",
-    panel_data_completeness:"数据完整性",
-    data_inspection:"检查报告", data_energy:"能源计量", data_bim:"BIM 模型",
-    data_iot:"IoT 传感器", data_logs:"维修记录", data_cost:"成本历史",
-    search_placeholder:"🔍  搜索建筑...",
-    filter_all_types:"全部类型", type_school_opt:"学校", type_nursing_opt:"养老院",
-    type_kinder_opt:"幼儿园", type_hall_opt:"市政厅", type_culture_opt:"文化中心", type_sports_opt:"体育馆",
-    filter_all_risk:"全部风险等级", risk_critical_opt:"严重", risk_high_opt:"高", risk_medium_opt:"中等", risk_low_opt:"低",
-    btn_ai_report:"生成 AI 报告",
-    th_building:"建筑名称", th_type:"类型", th_built:"建造年份", th_area:"面积 (m²)", th_condition:"状态评分",
-    th_risk:"风险等级", th_pred5:"AI 5年预测", th_cost:"年度成本 (NOK)", th_energy:"能效", th_actions:"操作",
-    btn_detail:"详情",
-    pred_card1:"平均预测状态（5年）", pred_card1_sub:"较当前 61.4 分下降",
-    pred_card2:"2031 年评分低于 40 的建筑", pred_card2_sub:"较今日 4 栋增加",
-    pred_card3:"总干预成本", pred_card3_sub:"挪威克朗 — 5 年主动计划",
-    pred_card4:"模型准确率（交叉验证）", pred_card4_sub:"RMSE：4.2 个评分点",
-    chart_trajectory:"状态轨迹 — 组合平均", chart_bld_forecast:"各建筑预测（2026–2031）",
-    pred_table_title:"AI 建筑劣化预测", pred_table_sub:"按 5 年预测变化排序",
-    th_current:"当前", th_1yr:"1年预测", th_3yr:"3年预测", th_5yr:"5年预测",
-    th_delta:"变化量", th_key_risk:"主要风险因素", th_conf:"置信度",
-    rf_school:"屋顶+立面老化", rf_nursing:"暖通系统劣化", rf_kinder:"基础受潮",
-    rf_culture:"立面保温", rf_sports:"屋顶排水", rf_hall:"机械系统",
-    rec_title:"AI 维修建议",
-    rec_subtitle:"生成于 2026-06-16 · 基于检查数据、成本模型与状态预测",
-    btn_export:"导出 PDF", btn_send:"发送至规划员",
-    rec_immediate:"🔴 立即处理（0–6 个月）", rec_short:"🟠 短期（6–18 个月）", rec_medium:"🟡 中期（18–60 个月）",
-    shap_label:"SHAP 解释：",
-    panel_risk_matrix:"风险矩阵 — 可能性 × 后果",
-    risk_axis_y:"← 可能性 →", risk_axis_x:"← 后果严重程度 →",
-    cons_1:"可忽略", cons_2:"轻微", cons_3:"中等", cons_4:"重大", cons_5:"灾难性",
-    panel_risk_factor:"风险因子分析", panel_risk_bar:"各建筑风险评分",
-    panel_budget_params:"预算优化参数",
-    budget_label:"年度预算约束", horizon_label:"规划周期", years_5:"5 年",
-    opt_safety:"安全合规优先", opt_energy:"能效权重",
-    opt_disruption:"最小化干扰", opt_co2:"碳减排目标",
-    panel_allocation:"5 年优化资金分配", panel_scenario:"情景对比",
-    scenario_none:"不干预（基准）", scenario_none_cost:"2031 年成本：3.47 亿克朗",
-    scenario_reactive:"被动维修", scenario_reactive_cost:"2031 年成本：2.18 亿克朗",
-    scenario_ai:"AI 主动优化", scenario_ai_cost:"2031 年成本：1.42 亿克朗",
-    panel_cond_proj:"状态预测", panel_cond_proj_sub:"优化方案下",
-    data_title:"模拟数据集 — 18 栋公共建筑", btn_export_csv:"导出 CSV",
-    data_sources:"主要数据来源",
-    ds_inspection:"检查报告（FDV）", ds_energy:"能源计量（AMS）",
-    ds_bim:"BIM 模型（IFC/Revit）", ds_cmms:"CMMS 工单系统",
-    ds_cost:"市政成本记录", ds_iot:"IoT 传感器数据流",
-    data_features:"特征类别",
-    feat_identity:"建筑基本信息（5 个特征）", feat_physical:"物理属性（4 个特征）",
-    feat_condition:"状态评分（6 个特征）", feat_financial:"财务数据（4 个特征）",
-    feat_energy:"能源与环境（3 个特征）", feat_ai:"AI 派生特征（2 个特征）",
-    data_quality:"数据质量指标",
-    dq_completeness:"完整性", dq_accuracy:"准确性", dq_timeliness:"时效性",
-    data_table_title:"完整数据集 — 全部特征",
-    th_muni:"市政区", th_floors:"楼层", th_overall:"综合", th_roof:"屋顶",
-    th_facade:"立面", th_elec:"电气", th_plumb:"管道", th_found:"地基",
-    th_energy_class:"能效", th_ann_cost:"年成本(千NOK)", th_backlog:"积压(千NOK)",
-    th_last_insp:"最近检查", th_inspector:"检查员", th_priority:"优先级", th_life:"寿命(年)",
-    modal_overall:"综合状态评分", modal_pred:"AI 5年预测", modal_delta:"变化",
-    modal_life:"剩余使用寿命", modal_major:"预计大修时间", modal_annual:"年度成本",
-    modal_backlog:"待修积压", modal_energy_use:"能耗", modal_admin:"行政信息",
-    modal_last_insp:"最近检查日期", modal_inspector:"检查员", modal_priority:"优先级评分",
-    comp_roof:"屋顶", comp_facade:"立面", comp_hvac:"暖通空调", comp_elec:"电气",
-    comp_plumb:"管道", comp_found:"地基",
-    chart_actual:"实际成本", chart_backlog:"积压费用",
-    chart_hist:"历史平均", chart_proactive:"AI预测（主动）", chart_baseline:"AI预测（基准）",
-    chart_critical:"紧急修缮", chart_preventive:"预防性维护",
-    chart_energy_ret:"能效改造", chart_admin:"行政管理",
-    chart_donothing:"不干预", chart_reactive:"被动维修", chart_optimized:"AI优化",
-    chart_opt_plan:"组合均值（优化方案）", chart_base_plan:"组合均值（基准）",
-    radar_structural:"结构完整性", radar_hvac:"暖通系统", radar_fire:"消防安全",
-    radar_energy:"能效表现", radar_water:"防水防潮", radar_elec:"电气安全",
-    radar_avg:"组合平均", radar_critical:"严重问题建筑",
-  }
-};
-
-let lang = 'zh';
-
-function t(key) { return T[lang][key] || T.en[key] || key; }
-
-function setLang(l) {
-  lang = l;
-  document.getElementById('btn-en').classList.toggle('active', l==='en');
-  document.getElementById('btn-zh').classList.toggle('active', l==='zh');
-  // update static elements
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if(T[lang][key] !== undefined) el.innerHTML = T[lang][key];
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder');
-    if(T[lang][key]) el.placeholder = T[lang][key];
-  });
-  // update dynamic content
-  const active = document.querySelector('.page.active');
-  if(active) {
-    const id = active.id.replace('page-','');
-    rerenderPage(id);
-  }
-  destroyCharts();
-  initDashboardCharts();
-  if(document.getElementById('page-risk').classList.contains('active')) initRiskCharts();
-  if(document.getElementById('page-budget').classList.contains('active')) initBudgetCharts();
-}
-
-// ============================================================
 // DATA
-// ============================================================
-const buildings = [
-  {id:"BLD-001",name:"Marienlyst Skole",type:"Skole",muni:"Oslo",built:1975,area:4200,floors:3,cond:32,roof:28,facade:35,hvac:41,elec:58,plumb:44,found:82,energy:"D",kwh:198,cost:1250,backlog:4800,inspection:"2025-11-12",inspector:"K. Hansen",risk:"Critical",priority:94,pred5:18,life:8},
-  {id:"BLD-002",name:"Grønnlia Sykehjem",type:"Sykehjem",muni:"Bergen",built:1982,area:6800,floors:4,cond:38,roof:42,facade:51,hvac:22,elec:48,plumb:35,found:75,energy:"E",kwh:224,cost:2100,backlog:6200,inspection:"2025-09-08",inspector:"M. Olsen",risk:"Critical",priority:91,pred5:22,life:10},
-  {id:"BLD-003",name:"Sentrum Barnehage",type:"Barnehage",muni:"Oslo",built:1968,area:890,floors:1,cond:29,roof:18,facade:31,hvac:38,elec:44,plumb:28,found:71,energy:"F",kwh:241,cost:480,backlog:2100,inspection:"2026-01-15",inspector:"A. Berg",risk:"Critical",priority:96,pred5:12,life:5},
-  {id:"BLD-004",name:"Bjerke Kulturhus",type:"Kulturhus",muni:"Oslo",built:1991,area:3400,floors:2,cond:48,roof:52,facade:41,hvac:55,elec:62,plumb:58,found:88,energy:"D",kwh:172,cost:890,backlog:3100,inspection:"2025-12-03",inspector:"T. Larsen",risk:"High",priority:78,pred5:34,life:15},
-  {id:"BLD-005",name:"Sandviken Barnehage",type:"Barnehage",muni:"Bergen",built:1985,area:720,floors:1,cond:51,roof:58,facade:62,hvac:49,elec:38,plumb:55,found:82,energy:"D",kwh:185,cost:320,backlog:980,inspection:"2025-10-22",inspector:"L. Pedersen",risk:"High",priority:72,pred5:38,life:18},
-  {id:"BLD-006",name:"Nordstrand Idrettshall",type:"Idrettshall",muni:"Oslo",built:1979,area:2800,floors:2,cond:44,roof:39,facade:48,hvac:51,elec:60,plumb:47,found:79,energy:"D",kwh:165,cost:760,backlog:2800,inspection:"2025-08-18",inspector:"K. Hansen",risk:"High",priority:80,pred5:29,life:12},
-  {id:"BLD-007",name:"Rådhuset Lier",type:"Rådhus",muni:"Lier",built:1962,area:5100,floors:5,cond:55,roof:61,facade:48,hvac:59,elec:52,plumb:63,found:92,energy:"D",kwh:158,cost:1100,backlog:3400,inspection:"2025-07-30",inspector:"P. Johansen",risk:"Medium",priority:65,pred5:41,life:20},
-  {id:"BLD-008",name:"Sagene Skole",type:"Skole",muni:"Oslo",built:2004,area:5800,floors:4,cond:71,roof:75,facade:78,hvac:68,elec:74,plumb:70,found:95,energy:"C",kwh:128,cost:820,backlog:1200,inspection:"2025-06-14",inspector:"M. Olsen",risk:"Medium",priority:48,pred5:58,life:28},
-  {id:"BLD-009",name:"Åsane Bibliotek",type:"Kulturhus",muni:"Bergen",built:1998,area:2200,floors:2,cond:58,roof:62,facade:55,hvac:64,elec:60,plumb:66,found:86,energy:"C",kwh:141,cost:540,backlog:1600,inspection:"2025-05-20",inspector:"A. Berg",risk:"Medium",priority:55,pred5:44,life:22},
-  {id:"BLD-010",name:"Tøyen Aktivitetshus",type:"Kulturhus",muni:"Oslo",built:1995,area:1800,floors:2,cond:62,roof:58,facade:65,hvac:67,elec:72,plumb:61,found:88,energy:"C",kwh:145,cost:410,backlog:1100,inspection:"2026-02-10",inspector:"T. Larsen",risk:"Medium",priority:52,pred5:49,life:24},
-  {id:"BLD-011",name:"Minde Sykehjem",type:"Sykehjem",muni:"Bergen",built:1988,area:4900,floors:3,cond:46,roof:44,facade:50,hvac:40,elec:55,plumb:48,found:78,energy:"E",kwh:208,cost:1650,backlog:4200,inspection:"2025-09-25",inspector:"L. Pedersen",risk:"High",priority:76,pred5:32,life:14},
-  {id:"BLD-012",name:"Torshov Skole",type:"Skole",muni:"Oslo",built:1971,area:3900,floors:3,cond:35,roof:31,facade:38,hvac:45,elec:50,plumb:40,found:76,energy:"E",kwh:215,cost:1080,backlog:3900,inspection:"2025-11-05",inspector:"K. Hansen",risk:"Critical",priority:88,pred5:20,life:9},
-  {id:"BLD-013",name:"Fyllingsdalen Idrettshall",type:"Idrettshall",muni:"Bergen",built:2008,area:3200,floors:1,cond:74,roof:78,facade:80,hvac:72,elec:76,plumb:74,found:96,energy:"B",kwh:112,cost:520,backlog:650,inspection:"2026-03-08",inspector:"P. Johansen",risk:"Low",priority:28,pred5:64,life:35},
-  {id:"BLD-014",name:"Grünerløkka Barnehage",type:"Barnehage",muni:"Oslo",built:2001,area:980,floors:1,cond:65,roof:68,facade:70,hvac:62,elec:68,plumb:64,found:91,energy:"C",kwh:138,cost:290,backlog:580,inspection:"2025-04-12",inspector:"M. Olsen",risk:"Medium",priority:42,pred5:53,life:26},
-  {id:"BLD-015",name:"Ytrebygda Skole",type:"Skole",muni:"Bergen",built:1993,area:4600,floors:3,cond:53,roof:49,facade:57,hvac:55,elec:61,plumb:52,found:84,energy:"D",kwh:162,cost:980,backlog:2600,inspection:"2025-10-18",inspector:"A. Berg",risk:"High",priority:68,pred5:39,life:17},
-  {id:"BLD-016",name:"Holmlia Sykehjem",type:"Sykehjem",muni:"Oslo",built:2012,area:7200,floors:5,cond:80,roof:82,facade:85,hvac:78,elec:82,plumb:80,found:98,energy:"B",kwh:108,cost:1100,backlog:420,inspection:"2026-04-22",inspector:"T. Larsen",risk:"Low",priority:18,pred5:72,life:42},
-  {id:"BLD-017",name:"Stord Rådhus",type:"Rådhus",muni:"Stord",built:1972,area:3600,floors:4,cond:58,roof:54,facade:60,hvac:62,elec:65,plumb:57,found:85,energy:"D",kwh:168,cost:720,backlog:2100,inspection:"2025-08-05",inspector:"L. Pedersen",risk:"Medium",priority:56,pred5:44,life:21},
-  {id:"BLD-018",name:"Fana Barnehage Ny",type:"Barnehage",muni:"Bergen",built:2019,area:1100,floors:1,cond:88,roof:90,facade:92,hvac:86,elec:90,plumb:88,found:99,energy:"A",kwh:88,cost:180,backlog:80,inspection:"2026-05-30",inspector:"K. Hansen",risk:"Low",priority:8,pred5:81,life:50}
-];
+const buildings=[{id:"BLD-001",name:"Marienlyst Skole",type:"Skole",muni:"Oslo",built:1975,area:4200,floors:3,cond:32,roof:28,facade:35,hvac:41,elec:58,plumb:44,found:82,energy:"D",kwh:198,cost:1250,backlog:4800,inspection:"2025-11-12",inspector:"K. Hansen",risk:"Critical",priority:94,pred5:18,life:8},{id:"BLD-002",name:"Grønnlia Sykehjem",type:"Sykehjem",muni:"Bergen",built:1982,area:6800,floors:4,cond:38,roof:42,facade:51,hvac:22,elec:48,plumb:35,found:75,energy:"E",kwh:224,cost:2100,backlog:6200,inspection:"2025-09-08",inspector:"M. Olsen",risk:"Critical",priority:91,pred5:22,life:10},{id:"BLD-003",name:"Sentrum Barnehage",type:"Barnehage",muni:"Oslo",built:1968,area:890,floors:1,cond:29,roof:18,facade:31,hvac:38,elec:44,plumb:28,found:71,energy:"F",kwh:241,cost:480,backlog:2100,inspection:"2026-01-15",inspector:"A. Berg",risk:"Critical",priority:96,pred5:12,life:5},{id:"BLD-004",name:"Bjerke Kulturhus",type:"Kulturhus",muni:"Oslo",built:1991,area:3400,floors:2,cond:48,roof:52,facade:41,hvac:55,elec:62,plumb:58,found:88,energy:"D",kwh:172,cost:890,backlog:3100,inspection:"2025-12-03",inspector:"T. Larsen",risk:"High",priority:78,pred5:34,life:15},{id:"BLD-005",name:"Sandviken Barnehage",type:"Barnehage",muni:"Bergen",built:1985,area:720,floors:1,cond:51,roof:58,facade:62,hvac:49,elec:38,plumb:55,found:82,energy:"D",kwh:185,cost:320,backlog:980,inspection:"2025-10-22",inspector:"L. Pedersen",risk:"High",priority:72,pred5:38,life:18},{id:"BLD-006",name:"Nordstrand Idrettshall",type:"Idrettshall",muni:"Oslo",built:1979,area:2800,floors:2,cond:44,roof:39,facade:48,hvac:51,elec:60,plumb:47,found:79,energy:"D",kwh:165,cost:760,backlog:2800,inspection:"2025-08-18",inspector:"K. Hansen",risk:"High",priority:80,pred5:29,life:12},{id:"BLD-007",name:"Rådhuset Lier",type:"Rådhus",muni:"Lier",built:1962,area:5100,floors:5,cond:55,roof:61,facade:48,hvac:59,elec:52,plumb:63,found:92,energy:"D",kwh:158,cost:1100,backlog:3400,inspection:"2025-07-30",inspector:"P. Johansen",risk:"Medium",priority:65,pred5:41,life:20},{id:"BLD-008",name:"Sagene Skole",type:"Skole",muni:"Oslo",built:2004,area:5800,floors:4,cond:71,roof:75,facade:78,hvac:68,elec:74,plumb:70,found:95,energy:"C",kwh:128,cost:820,backlog:1200,inspection:"2025-06-14",inspector:"M. Olsen",risk:"Medium",priority:48,pred5:58,life:28},{id:"BLD-009",name:"Åsane Bibliotek",type:"Kulturhus",muni:"Bergen",built:1998,area:2200,floors:2,cond:58,roof:62,facade:55,hvac:64,elec:60,plumb:66,found:86,energy:"C",kwh:141,cost:540,backlog:1600,inspection:"2025-05-20",inspector:"A. Berg",risk:"Medium",priority:55,pred5:44,life:22},{id:"BLD-010",name:"Tøyen Aktivitetshus",type:"Kulturhus",muni:"Oslo",built:1995,area:1800,floors:2,cond:62,roof:58,facade:65,hvac:67,elec:72,plumb:61,found:88,energy:"C",kwh:145,cost:410,backlog:1100,inspection:"2026-02-10",inspector:"T. Larsen",risk:"Medium",priority:52,pred5:49,life:24},{id:"BLD-011",name:"Minde Sykehjem",type:"Sykehjem",muni:"Bergen",built:1988,area:4900,floors:3,cond:46,roof:44,facade:50,hvac:40,elec:55,plumb:48,found:78,energy:"E",kwh:208,cost:1650,backlog:4200,inspection:"2025-09-25",inspector:"L. Pedersen",risk:"High",priority:76,pred5:32,life:14},{id:"BLD-012",name:"Torshov Skole",type:"Skole",muni:"Oslo",built:1971,area:3900,floors:3,cond:35,roof:31,facade:38,hvac:45,elec:50,plumb:40,found:76,energy:"E",kwh:215,cost:1080,backlog:3900,inspection:"2025-11-05",inspector:"K. Hansen",risk:"Critical",priority:88,pred5:20,life:9},{id:"BLD-013",name:"Fyllingsdalen Idrettshall",type:"Idrettshall",muni:"Bergen",built:2008,area:3200,floors:1,cond:74,roof:78,facade:80,hvac:72,elec:76,plumb:74,found:96,energy:"B",kwh:112,cost:520,backlog:650,inspection:"2026-03-08",inspector:"P. Johansen",risk:"Low",priority:28,pred5:64,life:35},{id:"BLD-014",name:"Grünerløkka Barnehage",type:"Barnehage",muni:"Oslo",built:2001,area:980,floors:1,cond:65,roof:68,facade:70,hvac:62,elec:68,plumb:64,found:91,energy:"C",kwh:138,cost:290,backlog:580,inspection:"2025-04-12",inspector:"M. Olsen",risk:"Medium",priority:42,pred5:53,life:26},{id:"BLD-015",name:"Ytrebygda Skole",type:"Skole",muni:"Bergen",built:1993,area:4600,floors:3,cond:53,roof:49,facade:57,hvac:55,elec:61,plumb:52,found:84,energy:"D",kwh:162,cost:980,backlog:2600,inspection:"2025-10-18",inspector:"A. Berg",risk:"High",priority:68,pred5:39,life:17},{id:"BLD-016",name:"Holmlia Sykehjem",type:"Sykehjem",muni:"Oslo",built:2012,area:7200,floors:5,cond:80,roof:82,facade:85,hvac:78,elec:82,plumb:80,found:98,energy:"B",kwh:108,cost:1100,backlog:420,inspection:"2026-04-22",inspector:"T. Larsen",risk:"Low",priority:18,pred5:72,life:42},{id:"BLD-017",name:"Stord Rådhus",type:"Rådhus",muni:"Stord",built:1972,area:3600,floors:4,cond:58,roof:54,facade:60,hvac:62,elec:65,plumb:57,found:85,energy:"D",kwh:168,cost:720,backlog:2100,inspection:"2025-08-05",inspector:"L. Pedersen",risk:"Medium",priority:56,pred5:44,life:21},{id:"BLD-018",name:"Fana Barnehage Ny",type:"Barnehage",muni:"Bergen",built:2019,area:1100,floors:1,cond:88,roof:90,facade:92,hvac:86,elec:90,plumb:88,found:99,energy:"A",kwh:88,cost:180,backlog:80,inspection:"2026-05-30",inspector:"K. Hansen",risk:"Low",priority:8,pred5:81,life:50}];
+const recs=[{bld:"BLD-001",name:"Marienlyst Skole",action:"Complete Roof Replacement",priority:"critical",timeline:"0–3 months",cost:3200000,saving:"8.4M over 10yr",shap:"Roof score 28/100 (weight 0.41), building age 51yr (0.28), winter moisture infiltration (0.18)",conf:94},{bld:"BLD-003",name:"Sentrum Barnehage",action:"Emergency Structural Assessment + Roof Repair",priority:"critical",timeline:"0–1 month",cost:850000,saving:"2.1M",shap:"Roof score 18/100 (0.52), building age 58yr (0.31), child occupancy risk (0.17)",conf:97},{bld:"BLD-002",name:"Grønnlia Sykehjem",action:"HVAC Full System Replacement",priority:"critical",timeline:"1–6 months",cost:2800000,saving:"6.2M",shap:"HVAC score 22/100 (0.48), CO₂ sensor alerts (0.29), system age 44yr (0.23)",conf:92},{bld:"BLD-012",name:"Torshov Skole",action:"Roof & Facade Renovation Package",priority:"critical",timeline:"3–6 months",cost:4100000,saving:"9.1M",shap:"Roof score 31/100 (0.38), facade 38/100 (0.35), energy loss 215 kWh/m² (0.27)",conf:89},{bld:"BLD-005",name:"Sandviken Barnehage",action:"Electrical Panel Upgrade (Fire Safety)",priority:"high",timeline:"6–9 months",cost:920000,saving:"1.8M",shap:"Electrical score 38/100 (0.55), panel age 41yr (0.32), fire code gap (0.13)",conf:91},{bld:"BLD-006",name:"Nordstrand Idrettshall",action:"Roof Drainage System Renewal",priority:"high",timeline:"6–12 months",cost:1400000,saving:"3.2M",shap:"Roof score 39/100 (0.44), drainage failures 3×/yr (0.38), gross area 2800m² (0.18)",conf:85},{bld:"BLD-011",name:"Minde Sykehjem",action:"HVAC Upgrade + Facade Insulation",priority:"high",timeline:"9–18 months",cost:3800000,saving:"7.5M",shap:"HVAC 40/100 (0.41), energy use 208 kWh/m² (0.34), facade 50/100 (0.25)",conf:83},{bld:"BLD-004",name:"Bjerke Kulturhus",action:"Facade Moisture Remediation",priority:"high",timeline:"6–12 months",cost:5600000,saving:"11.2M",shap:"Facade score 41/100 (0.46), moisture zones detected (0.38), energy loss (0.16)",conf:88}];
 
-const recommendations = [
-  {bld:"BLD-001",name:"Marienlyst Skole",action_en:"Complete Roof Replacement",action_zh:"屋顶整体更换",priority:"critical",timeline_en:"0–3 months",timeline_zh:"0–3 个月",cost:"3,200,000",saving_en:"8.4M over 10yr",saving_zh:"10年节省 840 万",shap_en:"Roof score 28/100 (weight 0.41), building age 51yr (0.28), winter moisture (0.18)",shap_zh:"屋顶评分 28/100（权重 0.41），楼龄 51 年（0.28），冬季渗水（0.18）",conf:94},
-  {bld:"BLD-003",name:"Sentrum Barnehage",action_en:"Emergency Structural Assessment + Roof Repair",action_zh:"紧急结构评估 + 屋顶修缮",priority:"critical",timeline_en:"0–1 month",timeline_zh:"0–1 个月",cost:"850,000",saving_en:"2.1M",saving_zh:"210 万",shap_en:"Roof score 18/100 (0.52), building age 58yr (0.31), child occupancy risk (0.17)",shap_zh:"屋顶评分 18/100（0.52），楼龄 58 年（0.31），儿童使用风险（0.17）",conf:97},
-  {bld:"BLD-002",name:"Grønnlia Sykehjem",action_en:"HVAC Full System Replacement",action_zh:"暖通空调系统全面更换",priority:"critical",timeline_en:"1–6 months",timeline_zh:"1–6 个月",cost:"2,800,000",saving_en:"6.2M",saving_zh:"620 万",shap_en:"HVAC score 22/100 (0.48), CO₂ sensor alerts (0.29), age 44yr (0.23)",shap_zh:"暖通评分 22/100（0.48），CO₂超标报警（0.29），楼龄 44 年（0.23）",conf:92},
-  {bld:"BLD-012",name:"Torshov Skole",action_en:"Roof & Facade Renovation Package",action_zh:"屋顶+立面综合翻新",priority:"critical",timeline_en:"3–6 months",timeline_zh:"3–6 个月",cost:"4,100,000",saving_en:"9.1M",saving_zh:"910 万",shap_en:"Roof score 31/100 (0.38), facade 38/100 (0.35), energy loss 215kWh/m² (0.27)",shap_zh:"屋顶评分 31/100（0.38），立面 38/100（0.35），能耗 215kWh/m²（0.27）",conf:89},
-  {bld:"BLD-005",name:"Sandviken Barnehage",action_en:"Electrical Panel Upgrade (Fire Safety)",action_zh:"配电盘升级（消防安全）",priority:"high",timeline_en:"6–9 months",timeline_zh:"6–9 个月",cost:"920,000",saving_en:"1.8M",saving_zh:"180 万",shap_en:"Electrical score 38/100 (0.55), panel age 41yr (0.32), fire code gap (0.13)",shap_zh:"电气评分 38/100（0.55），配电盘楼龄 41 年（0.32），消防法规缺口（0.13）",conf:91},
-  {bld:"BLD-006",name:"Nordstrand Idrettshall",action_en:"Roof Drainage System Renewal",action_zh:"屋顶排水系统更新",priority:"high",timeline_en:"6–12 months",timeline_zh:"6–12 个月",cost:"1,400,000",saving_en:"3.2M",saving_zh:"320 万",shap_en:"Roof score 39/100 (0.44), drainage failures 3×/yr (0.38), area 2800m² (0.18)",shap_zh:"屋顶评分 39/100（0.44），排水故障 3 次/年（0.38），面积 2800m²（0.18）",conf:85},
-  {bld:"BLD-011",name:"Minde Sykehjem",action_en:"HVAC Upgrade + Facade Insulation",action_zh:"暖通升级 + 立面保温改造",priority:"high",timeline_en:"9–18 months",timeline_zh:"9–18 个月",cost:"3,800,000",saving_en:"7.5M",saving_zh:"750 万",shap_en:"HVAC 40/100 (0.41), energy 208kWh/m² (0.34), facade 50/100 (0.25)",shap_zh:"暖通 40/100（0.41），能耗 208kWh/m²（0.34），立面 50/100（0.25）",conf:83},
-  {bld:"BLD-004",name:"Bjerke Kulturhus",action_en:"Facade Moisture Remediation",action_zh:"立面渗水处理",priority:"high",timeline_en:"6–12 months",timeline_zh:"6–12 个月",cost:"5,600,000",saving_en:"11.2M",saving_zh:"1120 万",shap_en:"Facade score 41/100 (0.46), moisture zones detected (0.38), energy loss (0.16)",shap_zh:"立面评分 41/100（0.46），检测到渗湿区域（0.38），能耗损失（0.16）",conf:88}
-];
-
-// ============================================================
 // HELPERS
-// ============================================================
-function condColor(v){
-  if(v<35)return'#ef4444';if(v<50)return'#f97316';if(v<65)return'#f59e0b';if(v<80)return'#22c55e';return'#4f7cff';
-}
-function riskBadge(r){
-  const map={Critical:'critical',High:'high',Medium:'medium',Low:'low'};
-  const zh={Critical:'严重',High:'高',Medium:'中等',Low:'低'};
-  const label = lang==='zh'?(zh[r]||r):r;
-  return`<span class="tag ${map[r]||''}">${label}</span>`;
-}
-function energyColor(e){return{A:'#22c55e',B:'#86efac',C:'#fbbf24',D:'#f97316',E:'#ef4444',F:'#dc2626'}[e]||'#8892a4';}
-function typeLabel(type){
-  const zh={Skole:'学校',Sykehjem:'养老院',Barnehage:'幼儿园',Rådhus:'市政厅',Kulturhus:'文化中心',Idrettshall:'体育馆'};
-  return lang==='zh'?(zh[type]||type):type;
-}
-function rfLabel(type){
-  const map={Skole:'rf_school',Sykehjem:'rf_nursing',Barnehage:'rf_kinder',Kulturhus:'rf_culture',Idrettshall:'rf_sports',Rådhus:'rf_hall'};
-  return t(map[type]||'rf_hall');
+const condColor=v=>v<35?'#dc2626':v<50?'#ea580c':v<65?'#d97706':v<80?'#16a34a':'#4f7cff';
+const riskBadge=r=>{const c={Critical:'critical',High:'high',Medium:'medium',Low:'low'};return`<span class="tag ${c[r]||''}">${r}</span>`;};
+const typeLabel=t=>({Skole:'School',Sykehjem:'Nursing Home',Barnehage:'Kindergarten',Rådhus:'City Hall',Kulturhus:'Culture Centre',Idrettshall:'Sports Hall'}[t]||t);
+const rfLabel=t=>({Skole:'Roof + facade ageing',Sykehjem:'HVAC deterioration',Barnehage:'Foundation moisture',Kulturhus:'Facade insulation loss',Idrettshall:'Roof drainage failure',Rådhus:'Mechanical systems'}[t]||'General wear');
+const energyColor=e=>({A:'#16a34a',B:'#15803d',C:'#ca8a04',D:'#ea580c',E:'#dc2626',F:'#b91c1c'}[e]||'#64748b');
+const isDark=()=>document.documentElement.getAttribute('data-theme')==='dark';
+const tick=()=>isDark()?'#8892a4':'#64748b';
+const grid=()=>isDark()?'rgba(46,50,80,.5)':'rgba(0,0,0,.07)';
+
+// THEME
+function toggleTheme(){
+  const d=isDark();
+  document.documentElement.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('theme-btn').textContent=d?'🌙':'☀️';
+  destroyCharts(); initDashboardCharts();
+  const p=document.querySelector('.page.active')?.id.replace('page-','');
+  if(p==='predictions')initPredictionCharts();
+  if(p==='risk')initRiskCharts();
+  if(p==='budget')initBudgetCharts();
 }
 
-// ============================================================
-// NAVIGATION
-// ============================================================
-const pageKeys = {dashboard:'page_dashboard',portfolio:'page_portfolio',predictions:'page_predictions',recommendations:'page_recommendations',risk:'page_risk',budget:'page_budget',data:'page_data'};
-
+// NAV
+const pageTitles={dashboard:'Portfolio Dashboard',portfolio:'Building Portfolio',predictions:'AI Condition Predictions',recommendations:'Maintenance Recommendations',risk:'Risk Assessment',budget:'Budget Optimizer',data:'Data Explorer'};
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>{
-    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))n.classList.add('active');
-  });
-  document.getElementById('page-title').textContent=t(pageKeys[id]||'page_dashboard');
-  rerenderPage(id);
-  if(id==='risk'){setTimeout(initRiskCharts,50);}
-  if(id==='budget'){setTimeout(initBudgetCharts,50);}
-}
-
-function rerenderPage(id){
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+id+"'"))n.classList.add('active');});
+  document.getElementById('page-title').textContent=pageTitles[id]||'';
   if(id==='portfolio')renderPortfolio();
   if(id==='predictions'){renderPredictions();setTimeout(initPredictionCharts,50);}
   if(id==='recommendations')renderRecommendations();
   if(id==='data')renderDataTable();
+  if(id==='risk'){buildRiskMatrix();setTimeout(initRiskCharts,50);}
+  if(id==='budget')setTimeout(initBudgetCharts,50);
 }
 
-// ============================================================
 // PORTFOLIO
-// ============================================================
 function renderPortfolio(){
-  const search=(document.getElementById('search-input')||{value:''}).value.toLowerCase();
-  const typeF=(document.getElementById('type-filter')||{value:''}).value;
-  const riskF=(document.getElementById('risk-filter')||{value:''}).value;
-  const filtered=buildings.filter(b=>{
-    if(search&&!b.name.toLowerCase().includes(search)&&!b.id.toLowerCase().includes(search))return false;
-    if(typeF&&b.type!==typeF)return false;
-    if(riskF&&b.risk!==riskF)return false;
+  const s=(document.getElementById('search-input')?.value||'').toLowerCase();
+  const tf=document.getElementById('type-filter')?.value||'';
+  const rf=document.getElementById('risk-filter')?.value||'';
+  const f=buildings.filter(b=>{
+    if(s&&!b.name.toLowerCase().includes(s)&&!b.id.toLowerCase().includes(s))return false;
+    if(tf&&b.type!==tf)return false;
+    if(rf&&b.risk!==rf)return false;
     return true;
   });
-  document.getElementById('portfolio-body').innerHTML=filtered.map(b=>`
-    <tr>
-      <td><div class="fw-600">${b.name}</div><div class="fs-11 text-muted">${b.id} · ${b.muni}</div></td>
-      <td>${typeLabel(b.type)}</td>
-      <td>${b.built}</td>
-      <td>${b.area.toLocaleString()}</td>
-      <td><div class="cond-bar-wrap"><span style="color:${condColor(b.cond)};font-weight:700;min-width:28px">${b.cond}</span><div class="cond-bar"><div class="cond-fill" style="width:${b.cond}%;background:${condColor(b.cond)}"></div></div></div></td>
-      <td>${riskBadge(b.risk)}</td>
-      <td><span style="color:${condColor(b.pred5)};font-weight:600">${b.pred5}</span> <span class="fs-11 text-muted">(${b.pred5-b.cond})</span></td>
-      <td>${b.cost.toLocaleString()}</td>
-      <td><span style="color:${energyColor(b.energy)};font-weight:700">${b.energy}</span></td>
-      <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openModal('${b.id}')">${t('btn_detail')}</button></td>
-    </tr>`).join('');
+  document.getElementById('portfolio-body').innerHTML=f.map(b=>`<tr>
+    <td><div class="fw-600">${b.name}</div><div class="fs-11 text-muted">${b.id} · ${b.muni}</div></td>
+    <td>${typeLabel(b.type)}</td><td>${b.built}</td><td>${b.area.toLocaleString()}</td>
+    <td><div class="cond-wrap"><span style="color:${condColor(b.cond)};font-weight:700;min-width:28px">${b.cond}</span><div class="cond-bar"><div class="cond-fill" style="width:${b.cond}%;background:${condColor(b.cond)}"></div></div></div></td>
+    <td>${riskBadge(b.risk)}</td>
+    <td><span style="color:${condColor(b.pred5)};font-weight:600">${b.pred5}</span> <span class="fs-11 text-muted">(${b.pred5-b.cond})</span></td>
+    <td>${b.cost.toLocaleString()}</td>
+    <td><span style="color:${energyColor(b.energy)};font-weight:700">${b.energy}</span></td>
+    <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openModal('${b.id}')">Detail</button></td>
+  </tr>`).join('');
 }
 function filterTable(){renderPortfolio();}
 
-// ============================================================
 // PREDICTIONS
-// ============================================================
 function renderPredictions(){
-  const tbody=document.getElementById('pred-table-body');
-  if(!tbody)return;
-  const sorted=[...buildings].sort((a,b)=>(a.pred5-a.cond)-(b.pred5-b.cond));
-  tbody.innerHTML=sorted.map(b=>{
-    const delta=b.pred5-b.cond;
-    const d1=Math.round(b.cond+delta*0.2);
-    const d3=Math.round(b.cond+delta*0.6);
+  const s=[...buildings].sort((a,b)=>(a.pred5-a.cond)-(b.pred5-b.cond));
+  document.getElementById('pred-table-body').innerHTML=s.map(b=>{
+    const d=b.pred5-b.cond;
     return`<tr>
       <td><div class="fw-600">${b.name}</div><div class="fs-11 text-muted">${b.id}</div></td>
       <td>${typeLabel(b.type)}</td>
       <td><span style="color:${condColor(b.cond)};font-weight:700">${b.cond}</span></td>
-      <td><span style="color:${condColor(d1)};font-weight:600">${d1}</span></td>
-      <td><span style="color:${condColor(d3)};font-weight:600">${d3}</span></td>
+      <td><span style="color:${condColor(Math.round(b.cond+d*.2))}">${Math.round(b.cond+d*.2)}</span></td>
+      <td><span style="color:${condColor(Math.round(b.cond+d*.6))}">${Math.round(b.cond+d*.6)}</span></td>
       <td><span style="color:${condColor(b.pred5)};font-weight:700">${b.pred5}</span></td>
-      <td style="color:${delta<-20?'var(--red)':delta<-10?'var(--orange)':'var(--yellow)'};font-weight:600">${delta}</td>
+      <td style="color:${d<-20?'var(--red)':d<-10?'var(--orange)':'var(--yellow)'};font-weight:600">${d}</td>
       <td class="fs-11">${rfLabel(b.type)}</td>
       <td>${riskBadge(b.risk)}</td>
     </tr>`;
   }).join('');
 }
 
-// ============================================================
 // RECOMMENDATIONS
-// ============================================================
 function renderRecommendations(){
-  const container=document.getElementById('rec-list');
-  if(!container)return;
-  const icons={critical:'🔴',high:'🟠'};
-  container.innerHTML=recommendations.map(r=>`
+  document.getElementById('rec-list').innerHTML=recs.map(r=>`
     <div class="rec-card" style="margin-bottom:12px">
-      <div class="rec-icon ${r.priority}">${icons[r.priority]||'🔵'}</div>
+      <div class="rec-icon ${r.priority}">${r.priority==='critical'?'🔴':'🟠'}</div>
       <div class="rec-body" style="flex:1">
         <div class="flex-between">
-          <div class="rec-title">${r.name} — ${lang==='zh'?r.action_zh:r.action_en}</div>
-          <span class="ai-badge" style="font-size:10px">AI ${lang==='zh'?'置信度':'conf'}: ${r.conf}%</span>
+          <div class="rec-title">${r.name} — ${r.action}</div>
+          <span class="ai-badge" style="font-size:10px">AI confidence: ${r.conf}%</span>
         </div>
-        <div class="rec-desc" style="margin-top:6px"><strong style="color:var(--text)">${t('shap_label')}</strong> ${lang==='zh'?r.shap_zh:r.shap_en}</div>
-        <div class="rec-meta" style="margin-top:10px">
-          <span class="rec-tag">⏱ ${lang==='zh'?r.timeline_zh:r.timeline_en}</span>
-          <span class="rec-tag">💰 ${parseInt(r.cost.replace(/,/g,'')).toLocaleString()} NOK</span>
-          <span class="rec-tag">${lang==='zh'?'节省':'Save'}: ${lang==='zh'?r.saving_zh:r.saving_en}</span>
+        <div class="rec-desc" style="margin-top:6px"><strong style="color:var(--text)">SHAP explanation:</strong> ${r.shap}</div>
+        <div class="rec-meta" style="margin-top:8px">
+          <span class="rec-tag">⏱ ${r.timeline}</span>
+          <span class="rec-tag">💰 ${r.cost.toLocaleString()} NOK</span>
+          <span class="rec-tag">Save: ${r.saving} NOK</span>
           <span class="rec-tag">${r.bld}</span>
         </div>
       </div>
     </div>`).join('');
 }
 
-// ============================================================
 // DATA TABLE
-// ============================================================
 function renderDataTable(){
-  const tbody=document.getElementById('data-table-body');
-  if(!tbody)return;
-  tbody.innerHTML=buildings.map(b=>`<tr>
-    <td style="font-family:monospace;font-size:12px">${b.id}</td>
-    <td class="fw-600">${b.name}</td>
-    <td>${typeLabel(b.type)}</td>
-    <td>${b.muni}</td><td>${b.built}</td>
-    <td>${b.area.toLocaleString()}</td>
-    <td style="text-align:center">${b.floors}</td>
+  document.getElementById('data-table-body').innerHTML=buildings.map(b=>`<tr>
+    <td style="font-family:monospace;font-size:11px">${b.id}</td>
+    <td class="fw-600">${b.name}</td><td>${typeLabel(b.type)}</td><td>${b.muni}</td><td>${b.built}</td>
+    <td>${b.area.toLocaleString()}</td><td style="text-align:center">${b.floors}</td>
     <td><span style="color:${condColor(b.cond)};font-weight:700">${b.cond}</span></td>
     <td><span style="color:${condColor(b.roof)}">${b.roof}</span></td>
     <td><span style="color:${condColor(b.facade)}">${b.facade}</span></td>
@@ -973,11 +608,8 @@ function renderDataTable(){
     <td><span style="color:${condColor(b.plumb)}">${b.plumb}</span></td>
     <td><span style="color:${condColor(b.found)}">${b.found}</span></td>
     <td style="color:${energyColor(b.energy)};font-weight:700">${b.energy}</td>
-    <td>${b.kwh}</td>
-    <td>${b.cost.toLocaleString()}</td>
-    <td>${b.backlog.toLocaleString()}</td>
-    <td style="font-size:11px">${b.inspection}</td>
-    <td style="font-size:11px">${b.inspector}</td>
+    <td>${b.kwh}</td><td>${b.cost.toLocaleString()}</td><td>${b.backlog.toLocaleString()}</td>
+    <td style="font-size:11px">${b.inspection}</td><td style="font-size:11px">${b.inspector}</td>
     <td>${riskBadge(b.risk)}</td>
     <td style="font-weight:700;color:var(--accent)">${b.priority}</td>
     <td><span style="color:${condColor(b.pred5)};font-weight:700">${b.pred5}</span></td>
@@ -985,167 +617,96 @@ function renderDataTable(){
   </tr>`).join('');
 }
 
-// ============================================================
+// RISK MATRIX
+function buildRiskMatrix(){
+  const rows=[[5,[{n:1,l:'BLD-07'},{n:0},{n:2,l:'01,12'},{n:1,l:'03'},{n:0}]],[4,[{n:0},{n:1,l:'15'},{n:2,l:'09,11'},{n:1,l:'06'},{n:0}]],[3,[{n:1,l:'17'},{n:0},{n:3,l:'05,08,14'},{n:1,l:'10'},{n:0}]],[2,[{n:2,l:'16,18'},{n:1,l:'13'},{n:0},{n:2,l:'02,04'},{n:0}]],[1,[{n:1,l:'18'},{n:0},{n:0},{n:0},{n:0}]]];
+  const bg=[['rgba(217,119,6,.18)','rgba(234,88,12,.2)','rgba(220,38,38,.22)','rgba(220,38,38,.32)','rgba(220,38,38,.4)'],['rgba(22,163,74,.15)','rgba(217,119,6,.15)','rgba(217,119,6,.22)','rgba(234,88,12,.22)','rgba(220,38,38,.22)'],['rgba(22,163,74,.12)','rgba(22,163,74,.15)','rgba(217,119,6,.15)','rgba(217,119,6,.18)','rgba(234,88,12,.18)'],['rgba(22,163,74,.08)','rgba(22,163,74,.1)','rgba(22,163,74,.12)','rgba(217,119,6,.1)','rgba(217,119,6,.15)'],['rgba(22,163,74,.05)','rgba(22,163,74,.08)','rgba(22,163,74,.1)','rgba(22,163,74,.12)','rgba(22,163,74,.14)']];
+  const cons=['1<br><small>Negligible</small>','2<br><small>Minor</small>','3<br><small>Moderate</small>','4<br><small>Major</small>','5<br><small>Catastrophic</small>'];
+  let h='';
+  rows.forEach(([lk,cells],ri)=>{
+    h+=`<div style="display:flex;gap:4px;margin-bottom:4px"><div style="width:22px;text-align:center;font-size:10px;color:var(--muted);line-height:52px">${lk}</div>`;
+    cells.forEach((c,ci)=>{ h+=`<div class="risk-cell" style="background:${bg[ri][ci]}"><span class="count">${c.n}</span>${c.l?`<span class="lbl">${c.l}</span>`:''}</div>`; });
+    h+='</div>';
+  });
+  h+=`<div style="display:flex;gap:4px;padding-left:26px;margin-top:4px">${cons.map(c=>`<div style="flex:1;text-align:center;font-size:10px;color:var(--muted)">${c}</div>`).join('')}</div>`;
+  h+=`<div style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px">← CONSEQUENCE →</div>`;
+  document.getElementById('risk-matrix-cells').innerHTML=h;
+}
+
 // MODAL
-// ============================================================
 function openModal(id){
   const b=buildings.find(x=>x.id===id);if(!b)return;
   document.getElementById('modal-title').textContent=b.name;
-  document.getElementById('modal-subtitle').textContent=`${b.id} · ${typeLabel(b.type)} · ${b.muni} · ${b.built} · ${b.area.toLocaleString()} m²`;
-  const comps=[['comp_roof',b.roof],['comp_facade',b.facade],['comp_hvac',b.hvac],['comp_elec',b.elec],['comp_plumb',b.plumb],['comp_found',b.found]];
+  document.getElementById('modal-subtitle').textContent=`${b.id} · ${typeLabel(b.type)} · ${b.muni} · Built ${b.built} · ${b.area.toLocaleString()} m²`;
+  const comps=[['Roof',b.roof],['Facade',b.facade],['HVAC',b.hvac],['Electrical',b.elec],['Plumbing',b.plumb],['Foundation',b.found]];
   document.getElementById('modal-body').innerHTML=`
     <div class="cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-      <div class="card"><div class="card-label">${t('modal_overall')}</div><div class="card-value" style="color:${condColor(b.cond)}">${b.cond}</div><div class="card-sub">/ 100</div></div>
-      <div class="card"><div class="card-label">${t('modal_pred')}</div><div class="card-value" style="color:${condColor(b.pred5)}">${b.pred5}</div><div class="card-sub">${t('modal_delta')} ${b.pred5-b.cond}</div></div>
-      <div class="card"><div class="card-label">${t('modal_life')}</div><div class="card-value text-yellow">${b.life}yr</div><div class="card-sub">${t('modal_major')}</div></div>
+      <div class="card"><div class="card-label">Overall Condition</div><div class="card-value" style="color:${condColor(b.cond)}">${b.cond}</div><div class="card-sub">/ 100</div></div>
+      <div class="card"><div class="card-label">AI Prediction 5yr</div><div class="card-value" style="color:${condColor(b.pred5)}">${b.pred5}</div><div class="card-sub">Δ ${b.pred5-b.cond} pts</div></div>
+      <div class="card"><div class="card-label">Remaining Life</div><div class="card-value text-yellow">${b.life}yr</div><div class="card-sub">Est. major refurbishment</div></div>
     </div>
-    <div class="comp-grid">${comps.map(([k,v])=>`<div class="comp-card"><div class="comp-name">${t(k)}</div><div class="comp-score" style="color:${condColor(v)}">${v}</div><div class="cond-bar" style="margin-top:8px"><div class="cond-fill" style="width:${v}%;background:${condColor(v)}"></div></div></div>`).join('')}</div>
+    <div class="comp-grid">${comps.map(([n,v])=>`<div class="comp-card"><div class="comp-name">${n}</div><div class="comp-score" style="color:${condColor(v)}">${v}</div><div class="cond-bar" style="margin-top:8px"><div class="cond-fill" style="width:${v}%;background:${condColor(v)}"></div></div></div>`).join('')}</div>
     <div class="grid-2" style="margin-top:16px">
-      <div><div class="card-label" style="margin-bottom:8px">${lang==='zh'?'财务信息':'Financial'}</div>
-        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">${t('modal_annual')}</span><span class="fw-600">${b.cost.toLocaleString()} NOK</span></div>
-        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">${t('modal_backlog')}</span><span class="fw-600 text-red">${b.backlog.toLocaleString()} NOK</span></div>
-        <div class="flex-between fs-12"><span class="text-muted">${t('modal_energy_use')}</span><span class="fw-600">${b.kwh} kWh/m²/yr</span></div>
+      <div><div class="card-label" style="margin-bottom:8px">Financial</div>
+        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">Annual Cost</span><span class="fw-600">${b.cost.toLocaleString()} NOK</span></div>
+        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">Backlog</span><span class="fw-600 text-red">${b.backlog.toLocaleString()} NOK</span></div>
+        <div class="flex-between fs-12"><span class="text-muted">Energy Use</span><span class="fw-600">${b.kwh} kWh/m²/yr</span></div>
       </div>
-      <div><div class="card-label" style="margin-bottom:8px">${t('modal_admin')}</div>
-        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">${t('modal_last_insp')}</span><span class="fw-600">${b.inspection}</span></div>
-        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">${t('modal_inspector')}</span><span class="fw-600">${b.inspector}</span></div>
-        <div class="flex-between fs-12"><span class="text-muted">${t('modal_priority')}</span><span class="fw-600 text-accent">${b.priority}/100</span></div>
+      <div><div class="card-label" style="margin-bottom:8px">Administration</div>
+        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">Last Inspection</span><span class="fw-600">${b.inspection}</span></div>
+        <div class="flex-between fs-12" style="margin-bottom:6px"><span class="text-muted">Inspector</span><span class="fw-600">${b.inspector}</span></div>
+        <div class="flex-between fs-12"><span class="text-muted">Priority Score</span><span class="fw-600 text-accent">${b.priority}/100</span></div>
       </div>
     </div>`;
   document.getElementById('modal-overlay').classList.add('open');
 }
 function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
 
-// ============================================================
-// BUDGET CONTROLS
-// ============================================================
+// BUDGET
 function updateBudget(v){document.getElementById('budget-val').textContent=v+'M NOK';}
-function updateHorizon(v){document.getElementById('horizon-val').innerHTML=v+(lang==='zh'?' 年':' years');}
+function updateHorizon(v){document.getElementById('horizon-val').textContent=v+' years';}
 
-// ============================================================
 // CHARTS
-// ============================================================
-const chartInstances={};
-function destroyCharts(){Object.values(chartInstances).forEach(c=>{try{c.destroy();}catch(e){}});Object.keys(chartInstances).forEach(k=>delete chartInstances[k]);}
-
-const grd={
-  plugins:{legend:{labels:{color:'#8892a4',font:{size:11}}}},
-  scales:{x:{grid:{color:'rgba(46,50,80,.5)'},ticks:{color:'#8892a4',font:{size:10}}},y:{grid:{color:'rgba(46,50,80,.5)'},ticks:{color:'#8892a4',font:{size:10}}}}
-};
-
-function mkChart(id,type,data,options){
+const charts={};
+function destroyCharts(){Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});Object.keys(charts).forEach(k=>delete charts[k]);}
+function mk(id,type,data,opts){
   const el=document.getElementById(id);if(!el)return;
-  if(chartInstances[id])chartInstances[id].destroy();
-  chartInstances[id]=new Chart(el,{type,data,options});
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(el,{type,data,options:opts});
+}
+function baseOpts(extra={}){
+  return{responsive:true,plugins:{legend:{labels:{color:tick(),font:{size:11}}}},scales:{x:{grid:{color:grid()},ticks:{color:tick(),font:{size:10}}},y:{grid:{color:grid()},ticks:{color:tick(),font:{size:10}}}},...extra};
 }
 
 function initDashboardCharts(){
-  mkChart('conditionChart','bar',{
-    labels:['<30','30–40','40–50','50–60','60–70','70–80','80+'],
-    datasets:[{label:t('th_condition'),data:[1,3,4,4,3,2,1],backgroundColor:['#ef4444','#ef4444','#f97316','#f59e0b','#4f7cff','#22c55e','#22c55e'],borderRadius:6}]
-  },{...grd,plugins:{legend:{display:false}}});
-
-  mkChart('costChart','line',{
-    labels:['2021','2022','2023','2024','2025','2026'],
-    datasets:[
-      {label:t('chart_actual'),data:[58,62,71,74,79,80],borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,.1)',fill:true,tension:.4,borderWidth:2},
-      {label:t('chart_backlog'),data:[88,98,112,124,134,142],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.1)',fill:true,tension:.4,borderWidth:2,borderDash:[5,5]}
-    ]
-  },{...grd});
-
-  const typeLabels=lang==='zh'?['学校','养老院','幼儿园','文化中心','体育馆','市政厅']:['School','Nursing Home','Kindergarten','Culture','Sports Hall','City Hall'];
-  mkChart('typeChart','doughnut',{
-    labels:typeLabels,
-    datasets:[{data:[4,3,4,3,2,2],backgroundColor:['#4f7cff','#7c4fff','#22c55e','#f59e0b','#f97316','#ef4444'],borderWidth:0}]
-  },{plugins:{legend:{position:'right',labels:{color:'#8892a4',font:{size:11},boxWidth:12}}}});
-
-  mkChart('energyChart','bar',{
-    labels:['A','B','C','D','E','F'],
-    datasets:[{data:[1,2,4,6,4,1],backgroundColor:['#22c55e','#86efac','#fbbf24','#f97316','#ef4444','#dc2626'],borderRadius:4}]
-  },{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(46,50,80,.5)'},ticks:{color:'#8892a4'}},y:{grid:{display:false},ticks:{color:'#8892a4'}}}});
-
-  mkChart('forecastChart','line',{
-    labels:['2026','2027','2028','2029','2030','2031'],
-    datasets:[
-      {label:t('chart_donothing'),data:[80,98,122,168,241,347],borderColor:'#ef4444',tension:.4,borderWidth:2,borderDash:[5,5]},
-      {label:t('chart_reactive'),data:[80,92,108,138,176,218],borderColor:'#f59e0b',tension:.4,borderWidth:2},
-      {label:t('chart_optimized'),data:[80,84,90,108,124,142],borderColor:'#22c55e',tension:.4,borderWidth:2}
-    ]
-  },{...grd});
+  mk('conditionChart','bar',{labels:['<30','30–40','40–50','50–60','60–70','70–80','80+'],datasets:[{label:'Buildings',data:[1,3,4,4,3,2,1],backgroundColor:['#dc2626','#dc2626','#ea580c','#d97706','#4f7cff','#16a34a','#16a34a'],borderRadius:6}]},baseOpts({plugins:{legend:{display:false}}}));
+  mk('costChart','line',{labels:['2021','2022','2023','2024','2025','2026'],datasets:[{label:'Actual Cost (M NOK)',data:[58,62,71,74,79,80],borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,.1)',fill:true,tension:.4,borderWidth:2},{label:'Backlog (M NOK)',data:[88,98,112,124,134,142],borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.08)',fill:true,tension:.4,borderWidth:2,borderDash:[5,5]}]},baseOpts());
+  mk('typeChart','doughnut',{labels:['School','Nursing Home','Kindergarten','Culture Centre','Sports Hall','City Hall'],datasets:[{data:[4,3,4,3,2,2],backgroundColor:['#4f7cff','#7c4fff','#16a34a','#d97706','#ea580c','#dc2626'],borderWidth:0,hoverOffset:4}]},{plugins:{legend:{position:'right',labels:{color:tick(),font:{size:11},boxWidth:12}}}});
+  mk('energyChart','bar',{labels:['A','B','C','D','E','F'],datasets:[{data:[1,2,4,6,4,1],backgroundColor:['#16a34a','#15803d','#ca8a04','#ea580c','#dc2626','#b91c1c'],borderRadius:4}]},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:grid()},ticks:{color:tick()}},y:{grid:{display:false},ticks:{color:tick()}}}});
+  mk('forecastChart','line',{labels:['2026','2027','2028','2029','2030','2031'],datasets:[{label:'Do-nothing',data:[80,98,122,168,241,347],borderColor:'#dc2626',tension:.4,borderWidth:2,borderDash:[5,5]},{label:'Reactive',data:[80,92,108,138,176,218],borderColor:'#d97706',tension:.4,borderWidth:2},{label:'AI-Optimised',data:[80,84,90,108,124,142],borderColor:'#16a34a',tension:.4,borderWidth:2}]},baseOpts());
 }
 
 function initPredictionCharts(){
-  mkChart('trajectoryChart','line',{
-    labels:['2023','2024','2025','2026','2027','2028','2029','2030','2031'],
-    datasets:[
-      {label:t('chart_hist'),data:[67,65,63,61,null,null,null,null,null],borderColor:'#4f7cff',borderWidth:2,tension:.4},
-      {label:t('chart_proactive'),data:[null,null,null,61,59,58,57,56,55],borderColor:'#22c55e',borderWidth:2,tension:.4,borderDash:[6,3]},
-      {label:t('chart_baseline'),data:[null,null,null,61,57,53,49,46,43],borderColor:'#ef4444',borderWidth:2,tension:.4,borderDash:[3,3]}
-    ]
-  },{...grd});
-
-  const top5=[...buildings].sort((a,b)=>a.pred5-b.pred5).slice(0,6);
-  const colors=['#ef4444','#f97316','#f59e0b','#4f7cff','#7c4fff','#22c55e'];
-  mkChart('buildingForecastChart','line',{
-    labels:['2026','2027','2028','2029','2030','2031'],
-    datasets:top5.map((b,i)=>({
-      label:b.name.split(' ')[0],
-      data:[b.cond,b.cond+(b.pred5-b.cond)*.2,b.cond+(b.pred5-b.cond)*.4,b.cond+(b.pred5-b.cond)*.6,b.cond+(b.pred5-b.cond)*.8,b.pred5].map(x=>Math.round(x)),
-      borderColor:colors[i],borderWidth:2,tension:.4,fill:false
-    }))
-  },{...grd});
+  mk('trajectoryChart','line',{labels:['2023','2024','2025','2026','2027','2028','2029','2030','2031'],datasets:[{label:'Historical Avg',data:[67,65,63,61,null,null,null,null,null],borderColor:'#4f7cff',borderWidth:2,tension:.4},{label:'AI Forecast (proactive)',data:[null,null,null,61,59,58,57,56,55],borderColor:'#16a34a',borderWidth:2,tension:.4,borderDash:[6,3]},{label:'AI Forecast (baseline)',data:[null,null,null,61,57,53,49,46,43],borderColor:'#dc2626',borderWidth:2,tension:.4,borderDash:[3,3]}]},baseOpts());
+  const top6=[...buildings].sort((a,b)=>a.pred5-b.pred5).slice(0,6);
+  const cols=['#dc2626','#ea580c','#d97706','#4f7cff','#7c4fff','#16a34a'];
+  mk('buildingForecastChart','line',{labels:['2026','2027','2028','2029','2030','2031'],datasets:top6.map((b,i)=>({label:b.name.split(' ')[0],data:[b.cond,b.cond+(b.pred5-b.cond)*.2,b.cond+(b.pred5-b.cond)*.4,b.cond+(b.pred5-b.cond)*.6,b.cond+(b.pred5-b.cond)*.8,b.pred5].map(Math.round),borderColor:cols[i],borderWidth:2,tension:.4,fill:false}))},baseOpts());
 }
 
 function initRiskCharts(){
-  mkChart('riskRadarChart','radar',{
-    labels:[t('radar_structural'),t('radar_hvac'),t('radar_fire'),t('radar_energy'),t('radar_water'),t('radar_elec')],
-    datasets:[
-      {label:t('radar_avg'),data:[54,48,62,45,58,60],borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,.15)',borderWidth:2},
-      {label:t('radar_critical'),data:[28,30,44,24,35,46],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.1)',borderWidth:2}
-    ]
-  },{plugins:{legend:{labels:{color:'#8892a4',font:{size:11}}}},scales:{r:{grid:{color:'rgba(46,50,80,.8)'},ticks:{color:'#8892a4',backdropColor:'transparent',font:{size:9}},pointLabels:{color:'#8892a4',font:{size:10}}}}});
-
-  const sorted=[...buildings].sort((a,b)=>a.cond-b.cond);
-  mkChart('riskBarChart','bar',{
-    labels:sorted.map(b=>b.name.split(' ')[0]),
-    datasets:[{label:t('th_condition'),data:sorted.map(b=>b.cond),backgroundColor:sorted.map(b=>condColor(b.cond)),borderRadius:4}]
-  },{...grd,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8892a4',font:{size:9}}},y:{grid:{color:'rgba(46,50,80,.5)'},ticks:{color:'#8892a4'},min:0,max:100}}});
+  mk('riskRadarChart','radar',{labels:['Structural Integrity','HVAC Condition','Fire Safety','Energy Performance','Water Damage','Electrical Safety'],datasets:[{label:'Portfolio Average',data:[54,48,62,45,58,60],borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,.15)',borderWidth:2},{label:'Critical Buildings',data:[28,30,44,24,35,46],borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.1)',borderWidth:2}]},{plugins:{legend:{labels:{color:tick(),font:{size:11}}}},scales:{r:{grid:{color:grid()},ticks:{color:tick(),backdropColor:'transparent',font:{size:9}},pointLabels:{color:tick(),font:{size:10}}}}});
+  const s=[...buildings].sort((a,b)=>a.cond-b.cond);
+  mk('riskBarChart','bar',{labels:s.map(b=>b.name.split(' ')[0]),datasets:[{label:'Condition Score',data:s.map(b=>b.cond),backgroundColor:s.map(b=>condColor(b.cond)),borderRadius:4}]},baseOpts({plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tick(),font:{size:9}}},y:{grid:{color:grid()},ticks:{color:tick()},min:0,max:100}}}));
 }
 
 function initBudgetCharts(){
-  mkChart('budgetAllocationChart','bar',{
-    labels:['2026','2027','2028','2029','2030'],
-    datasets:[
-      {label:t('chart_critical'),data:[28,15,8,5,4],backgroundColor:'#ef4444',borderRadius:4},
-      {label:t('chart_preventive'),data:[22,28,32,35,36],backgroundColor:'#4f7cff',borderRadius:4},
-      {label:t('chart_energy_ret'),data:[18,22,24,22,20],backgroundColor:'#22c55e',borderRadius:4},
-      {label:t('chart_admin'),data:[12,15,16,18,20],backgroundColor:'#7c4fff',borderRadius:4}
-    ]
-  },{...grd,scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#8892a4'}},y:{stacked:true,grid:{color:'rgba(46,50,80,.5)'},ticks:{color:'#8892a4'}}}});
-
-  mkChart('scenarioChart','line',{
-    labels:['2026','2027','2028','2029','2030','2031'],
-    datasets:[
-      {label:t('chart_donothing'),data:[80,110,152,214,282,347],borderColor:'#ef4444',tension:.4,borderWidth:2},
-      {label:t('chart_reactive'),data:[80,95,115,148,180,218],borderColor:'#f59e0b',tension:.4,borderWidth:2},
-      {label:t('chart_optimized'),data:[80,83,88,104,121,142],borderColor:'#22c55e',tension:.4,borderWidth:2}
-    ]
-  },{...grd});
-
-  mkChart('condProjectChart','line',{
-    labels:['2026','2027','2028','2029','2030','2031'],
-    datasets:[
-      {label:t('chart_opt_plan'),data:[61,62,63,64,65,67],borderColor:'#22c55e',tension:.4,backgroundColor:'rgba(34,197,94,.1)',fill:true,borderWidth:2},
-      {label:t('chart_base_plan'),data:[61,58,55,51,48,44],borderColor:'#ef4444',tension:.4,borderWidth:2,borderDash:[5,5]}
-    ]
-  },{...grd,scales:{x:{grid:{display:false},ticks:{color:'#8892a4',font:{size:10}}},y:{grid:{color:'rgba(46,50,80,.5)'},ticks:{color:'#8892a4'},min:30,max:80}}});
+  mk('budgetAllocationChart','bar',{labels:['2026','2027','2028','2029','2030'],datasets:[{label:'Critical Repairs',data:[28,15,8,5,4],backgroundColor:'#dc2626',borderRadius:4},{label:'Preventive Maintenance',data:[22,28,32,35,36],backgroundColor:'#4f7cff',borderRadius:4},{label:'Energy Retrofit',data:[18,22,24,22,20],backgroundColor:'#16a34a',borderRadius:4},{label:'Administrative',data:[12,15,16,18,20],backgroundColor:'#7c4fff',borderRadius:4}]},baseOpts({scales:{x:{stacked:true,grid:{display:false},ticks:{color:tick()}},y:{stacked:true,grid:{color:grid()},ticks:{color:tick()}}}}));
+  mk('scenarioChart','line',{labels:['2026','2027','2028','2029','2030','2031'],datasets:[{label:'Do-nothing',data:[80,110,152,214,282,347],borderColor:'#dc2626',tension:.4,borderWidth:2},{label:'Reactive',data:[80,95,115,148,180,218],borderColor:'#d97706',tension:.4,borderWidth:2},{label:'AI-Optimised',data:[80,83,88,104,121,142],borderColor:'#16a34a',tension:.4,borderWidth:2}]},baseOpts());
+  mk('condProjectChart','line',{labels:['2026','2027','2028','2029','2030','2031'],datasets:[{label:'Portfolio Avg (optimised)',data:[61,62,63,64,65,67],borderColor:'#16a34a',tension:.4,backgroundColor:'rgba(22,163,74,.1)',fill:true,borderWidth:2},{label:'Portfolio Avg (baseline)',data:[61,58,55,51,48,44],borderColor:'#dc2626',tension:.4,borderWidth:2,borderDash:[5,5]}]},baseOpts({scales:{x:{grid:{display:false},ticks:{color:tick(),font:{size:10}}},y:{grid:{color:grid()},ticks:{color:tick()},min:30,max:80}}}));
 }
 
-// ============================================================
-// INIT — default Chinese
-// ============================================================
 window.addEventListener('load',()=>{
-  setLang('zh');
+  initDashboardCharts();
   renderPortfolio();
 });
 </script>
